@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  websocket-server:
+    build: .
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8080:8080"
+    command: php src/server.php
