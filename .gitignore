@@ -4,7 +4,6 @@
 # Папки с кэшами
 /vendor/
 
-
 # Файлы Composer
 composer.lock
 

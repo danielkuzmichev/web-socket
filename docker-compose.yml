@@ -7,4 +7,4 @@ services:
       - .:/var/www/html
     ports:
       - "8080:8080"
-    command: php src/server.php
+    command: php bin/server.php
