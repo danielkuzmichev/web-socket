@@ -4,17 +4,15 @@ namespace App;
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
-use Ratchet\Server\IoServer;
-use App\Dispatcher\MessageDispatcher;
+use App\Dispatcher\MessageDispatcherInterface;
 
 class GameServer implements MessageComponentInterface {
 
-    private MessageDispatcher $dispatcher;
+    private MessageDispatcherInterface $dispatcher;
 
-    public function __construct() {
-        $this->dispatcher = new MessageDispatcher();
+    // Конструктор теперь принимает MessageDispatcher как зависимость
+    public function __construct(MessageDispatcherInterface $dispatcher) {
+        $this->dispatcher = $dispatcher;
     }
 
     public function onOpen(ConnectionInterface $conn) {
@@ -22,7 +20,15 @@ class GameServer implements MessageComponentInterface {
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        $this->dispatcher->dispatch($msg, $from);
+        $data = json_decode($msg, true);
+        if ($data) {
+            $this->dispatcher->dispatchFromArray($data, $from);
+        } else {
+            $from->send(json_encode([
+                'type' => 'error',
+                'payload' => ['message' => 'Invalid message format']
+            ]));
+        }
     }
 
     public function onClose(ConnectionInterface $conn) {
@@ -34,4 +40,3 @@ class GameServer implements MessageComponentInterface {
         $conn->close();
     }
 }
-

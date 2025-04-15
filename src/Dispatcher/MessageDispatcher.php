@@ -5,19 +5,14 @@ namespace App\Dispatcher;
 use Ratchet\ConnectionInterface;
 use App\Handler\MessageHandlerInterface;
 
-class MessageDispatcher {
+class MessageDispatcher implements MessageDispatcherInterface {
+
     private array $handlers = [];
 
-    public function __construct() {
-        foreach (glob(__DIR__ . '/../Handler/*Handler.php') as $file) {
-            require_once $file;
-            $className = 'App\\Handler\\' . basename($file, '.php');
-            if (class_exists($className)) {
-                $instance = new $className();
-                if ($instance instanceof MessageHandlerInterface) {
-                    $this->handlers[$instance->getType()] = $instance;
-                }
-            }
+    public function __construct(iterable $handlers)
+    {
+        foreach ($handlers as $handler) {
+            $this->handlers[$handler->getType()] = $handler;
         }
     }
 
@@ -30,5 +25,10 @@ class MessageDispatcher {
         }
 
         $this->handlers[$data['type']]->handle($data['payload'] ?? [], $conn);
+    }
+
+    public function dispatchFromArray(array $message, ConnectionInterface $conn): void {
+        $json = json_encode($message);
+        $this->dispatch($json, $conn);
     }
 }
