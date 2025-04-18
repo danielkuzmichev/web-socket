@@ -9,7 +9,7 @@ class MessageDispatcher implements MessageDispatcherInterface {
 
     private array $handlers = [];
 
-    public function __construct(iterable $handlers)
+    public function __construct(iterable $handlers = [])
     {
         foreach ($handlers as $handler) {
             $this->handlers[$handler->getType()] = $handler;
@@ -30,5 +30,17 @@ class MessageDispatcher implements MessageDispatcherInterface {
     public function dispatchFromArray(array $message, ConnectionInterface $conn): void {
         $json = json_encode($message);
         $this->dispatch($json, $conn);
+    }
+
+    public function setHandlers(array $handlers): void
+    {
+        foreach ($handlers as $handler) {
+            $this->handlers[$handler->getType()] = $handler;
+        }
+    }
+
+    public function registerHandler(MessageHandlerInterface $handler): void
+    {
+        $this->handlers[$handler->getType()] = $handler;
     }
 }

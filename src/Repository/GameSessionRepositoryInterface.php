@@ -17,4 +17,6 @@ interface GameSessionRepositoryInterface
     public function findByConnection(ConnectionInterface $conn): mixed;
 
     public function add(string $sessionId, array $players): void;
+
+    public function removeConnection(string $sessionId, ConnectionInterface $conn): void;
 }

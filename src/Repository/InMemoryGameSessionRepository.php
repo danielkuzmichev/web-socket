@@ -59,4 +59,18 @@ class InMemoryGameSessionRepository implements GameSessionRepositoryInterface
     {
         $this->sessions[$sessionId] = ['players' => $players];
     }
+
+    public function removeConnection(string $sessionId, ConnectionInterface $conn): void
+    {
+        if (isset($this->sessions[$sessionId])) {
+            $this->sessions[$sessionId]['players'] = array_filter(
+                $this->sessions[$sessionId]['players'],
+                fn($player) => $player !== $conn
+            );
+
+            if (empty($this->sessions[$sessionId]['players'])) {
+                unset($this->sessions[$sessionId]);
+            }
+        }
+    }
 }
