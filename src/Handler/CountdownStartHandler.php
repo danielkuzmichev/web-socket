@@ -22,13 +22,13 @@ class CountdownStartHandler implements MessageHandlerInterface
     /** @todo Проверить, что заканчивается одновременно */
     public function handle(array $payload, ConnectionInterface $conn): void
     {
-        $seconds = $payload['delay'] ?? 3;
+        $startAt = $payload['startAt'] ?? null;
         $sessionId = $payload['sessionId'] ?? null;
 
-        if (!$sessionId) {
+        if (!$startAt || !$sessionId) {
             $conn->send(json_encode([
                 'type' => 'error',
-                'payload' => ['message' => 'Missing session ID for countdown.']
+                'payload' => ['message' => 'Missing start time or session ID.']
             ]));
             return;
         }
@@ -43,18 +43,23 @@ class CountdownStartHandler implements MessageHandlerInterface
             return;
         }
 
+        $now = microtime(true);
+        $delay = max(0, $startAt - $now);
+
         $conn->send(json_encode([
             'type' => 'countdown',
-            'payload' => ['message' => "Match starts in {$seconds} seconds..."]
+            'payload' => [
+                'startAt' => $startAt,
+                'remainingSeconds' => round($delay)
+            ]
         ]));
 
-
-        $this->startTimer($seconds, $sessionId, $conn);
+        $this->startTimer($delay, $sessionId, $conn);
     }
 
-    private function startTimer(int $countdownSeconds, string $sessionId, ConnectionInterface $conn): void
+    private function startTimer(float $delaySeconds, string $sessionId, ConnectionInterface $conn): void
     {
-        \React\EventLoop\Loop::get()->addTimer($countdownSeconds, function () use ($sessionId, $conn) {
+        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($sessionId, $conn) {
 
             $conn->send(json_encode([
                 'type' => 'match_started',
@@ -65,7 +70,7 @@ class CountdownStartHandler implements MessageHandlerInterface
                 $conn->send(json_encode([
                     'type' => 'match_ended',
                     'payload' => ['message' => 'Match ended!']
-                ]));                
+                ]));
             });
         });
     }

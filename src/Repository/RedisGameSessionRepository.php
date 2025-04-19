@@ -55,7 +55,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
 
     public function findByConnection(ConnectionInterface $conn): mixed
     {
-        $connectionId = spl_object_id($conn);
+        $connectionId = $conn->resourceId;
         $sessionId = $this->redis->get("connection_to_session:$connectionId");
         if (!$sessionId) {
             return null;
@@ -69,8 +69,8 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
         if (!$session) {
             throw new \RuntimeException("Session not found");
         }
-        foreach ($players as $player) {
-            $connId = spl_object_id($player);
+        foreach ($players as $playerConn) {
+            $connId = $playerConn->resourceId;
             $session['players'][] = [
                 'connection_id' => $connId,
             ];

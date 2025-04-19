@@ -70,7 +70,7 @@ class JoinSessionHandler implements MessageHandlerInterface
 
         // Обновляем данные о сессии (чтобы снова не делать find)
         $session = $this->gameSessionRepository->find($sessionId);
-        var_dump(123, $session['players']);
+
         if (count($session['players']) === 2) {
             $this->startCountdown($sessionId);
         }
@@ -84,23 +84,26 @@ class JoinSessionHandler implements MessageHandlerInterface
         ]));
     }
 
-    /** @todo Исправить хранение и получение соединений. Мы либо храним сессию и соединения, либо только соединения */ 
     private function startCountdown(string $sessionId): void
-    {
-        if (!$this->dispatcher) {
-            return;
-        }
-
-        $session = $this->connectionStorage->getConnections($sessionId);
-        var_dump(222, count($session));
-        foreach ($session as $playerConn) {
-            $this->dispatcher->dispatchFromArray([
-                'type' => 'countdown_start',
-                'payload' => [
-                    'seconds' => 3,
-                    'sessionId' => $sessionId
-                ]
-            ], $playerConn);
-        }
+{
+    if (!$this->dispatcher) {
+        return;
     }
+
+    $connections = $this->connectionStorage->getConnections($sessionId);
+
+    $startAt = microtime(true) + 5;
+    $startAt = round($startAt, 3);
+
+    foreach ($connections as $playerConn) {
+        $this->dispatcher->dispatchFromArray([
+            'type' => 'countdown_start',
+            'payload' => [
+                'startAt' => $startAt,
+                'sessionId' => $sessionId
+            ]
+        ], $playerConn);
+    }
+}
+
 }
