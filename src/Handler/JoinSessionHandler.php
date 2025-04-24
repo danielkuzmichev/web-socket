@@ -10,17 +10,20 @@ use Ratchet\ConnectionInterface;
 class JoinSessionHandler implements MessageHandlerInterface
 {
     private GameSessionRepositoryInterface $gameSessionRepository;
-    private ?MessageDispatcherInterface $dispatcher;
+    private ?MessageDispatcherInterface $dispatcher = null;
     private ConnectionStorage $connectionStorage;
 
     public function __construct(
         GameSessionRepositoryInterface $gameSessionRepository,
-        ?MessageDispatcherInterface $dispatcher,
         ConnectionStorage $connectionStorage
     ) {
         $this->gameSessionRepository = $gameSessionRepository;
-        $this->dispatcher = $dispatcher;
         $this->connectionStorage = $connectionStorage;
+    }
+
+    public function setDispatcher(MessageDispatcherInterface $dispatcher): void
+    {
+        $this->dispatcher = $dispatcher;
     }
 
     public function getType(): string

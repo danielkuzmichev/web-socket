@@ -1,0 +1,48 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Tests/'
+
+    App\Util\Redis\RedisClient:
+        calls:
+            - method: connect
+              arguments:
+                - 'redis'
+                - 6379
+
+    App\Handler\:
+        resource: '../src/Handler'
+        tags: ['app.message_handler']
+    
+
+    App\Dispatcher\MessageDispatcher:
+        arguments:
+            $handlers: !tagged_iterator app.message_handler
+
+    App\Handler\JoinSessionHandler:
+        autowire: true
+        autoconfigure: false
+        public: true
+        tags: ['app.message_handler']
+        calls:
+            - method: setDispatcher
+              arguments:
+                  - '@App\Dispatcher\MessageDispatcher'
+    
+    App\Util\Connection\ConnectionStorage: ~
+
+    App\Repository\GameSessionRepositoryInterface: '@App\Repository\RedisGameSessionRepository'
+
+    App\GameServer:
+        arguments:
+            $dispatcher: '@App\Dispatcher\MessageDispatcher'
+            $connectionStorage: '@App\Util\Connection\ConnectionStorage'

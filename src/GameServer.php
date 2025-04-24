@@ -14,10 +14,14 @@ class GameServer implements MessageComponentInterface
     private ConnectionStorage $connectionStorage;
     private GameSessionRepositoryInterface $gameSessionRepository;
 
-    public function __construct(MessageDispatcherInterface $dispatcher, ConnectionStorage $connectionStorage)
-    {
+    public function __construct(
+        MessageDispatcherInterface $dispatcher,
+        ConnectionStorage $connectionStorage,
+        GameSessionRepositoryInterface $gameSessionRepository
+    ) {
         $this->dispatcher = $dispatcher;
         $this->connectionStorage = $connectionStorage;
+        $this->gameSessionRepository = $gameSessionRepository;
     }
 
     public function onOpen(ConnectionInterface $conn)

@@ -7,12 +7,18 @@ use App\Handler\MessageHandlerInterface;
 
 class MessageDispatcher implements MessageDispatcherInterface {
 
+    /**
+     * @var MessageHandlerInterface[]
+     */
     private array $handlers = [];
 
+    /**
+     * @param iterable<MessageHandlerInterface> $handlers
+     */
     public function __construct(iterable $handlers = [])
     {
         foreach ($handlers as $handler) {
-            $this->handlers[$handler->getType()] = $handler;
+            $this->registerHandler($handler);
         }
     }
 

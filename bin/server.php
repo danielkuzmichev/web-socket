@@ -7,11 +7,10 @@ use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
 use App\GameServer;
 
-// Получаем DI контейнер
-$container = require __DIR__ . '/../config/di.php';
+$container = require __DIR__ . '/../config/container.php';
 
-// Извлекаем необходимые зависимости из контейнера
-$gameServer = $container['gameServer'];
+
+$gameServer = $container->get(App\GameServer::class);
 
 // Создаем и запускаем сервер
 $server = IoServer::factory(
