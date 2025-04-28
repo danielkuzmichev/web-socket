@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dispatcher;
+namespace App\Core\Dispatcher;
 
 use Ratchet\ConnectionInterface;
 

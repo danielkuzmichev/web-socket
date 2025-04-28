@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Dispatcher;
+namespace App\Core\Dispatcher;
 
+use App\Core\Handler\MessageHandlerInterface;
 use Ratchet\ConnectionInterface;
-use App\Handler\MessageHandlerInterface;
 
 class MessageDispatcher implements MessageDispatcherInterface {
 

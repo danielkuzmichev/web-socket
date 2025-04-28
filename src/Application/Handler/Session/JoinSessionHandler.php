@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Handler;
+namespace App\Application\Handler\Session;
 
-use App\Dispatcher\MessageDispatcherInterface;
-use App\Repository\GameSessionRepositoryInterface;
+use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Dispatcher\MessageDispatcherInterface;
+use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
 

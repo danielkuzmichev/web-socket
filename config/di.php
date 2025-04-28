@@ -1,14 +1,13 @@
 <?php
 
-use App\Dispatcher\MessageDispatcher;
+use App\Application\Handler\Session\CountdownStartHandler;
+use App\Application\Handler\Session\CreateSessionHandler;
+use App\Application\Handler\Session\JoinSessionHandler;
+use App\Core\Dispatcher\MessageDispatcher;
+use App\Core\Handler\MessageHandlerInterface;
 use App\GameServer;
-use App\Handler\CreateSessionHandler;
-use App\Handler\JoinSessionHandler;
-use App\Handler\CountdownStartHandler;
-use App\Handler\MessageHandlerInterface;
-use App\Repository\GameSessionRepositoryInterface;
-use App\Repository\InMemoryGameSessionRepository;
-use App\Repository\RedisGameSessionRepository;
+use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\GameSession\RedisGameSessionRepository;
 use App\Util\Connection\ConnectionStorage;
 use App\Util\Redis\RedisClient;
 

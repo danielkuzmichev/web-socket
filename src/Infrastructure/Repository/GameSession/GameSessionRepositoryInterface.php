@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Infrastructure\Repository\GameSession;
 
 use Ratchet\ConnectionInterface;
 

@@ -2,11 +2,11 @@
 
 namespace App;
 
-use Ratchet\MessageComponentInterface;
+use App\Core\Dispatcher\MessageDispatcherInterface;
 use Ratchet\ConnectionInterface;
-use App\Dispatcher\MessageDispatcherInterface;
-use App\Repository\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
 {

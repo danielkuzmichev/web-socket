@@ -7,9 +7,6 @@ services:
     App\:
         resource: '../src/'
         exclude:
-            - '../src/Kernel.php'
-            - '../src/DependencyInjection/'
-            - '../src/Entity/'
             - '../src/Tests/'
 
     App\Util\Redis\RedisClient:
@@ -19,11 +16,11 @@ services:
                 - 'redis'
                 - 6379
 
-    App\Handler\:
-        resource: '../src/Handler'
+    App\Application\Handler\:
+        resource: '../src/Application/Handler/*'
         tags: ['app.message_handler']
 
-    App\Dispatcher\MessageDispatcher:
+    App\Core\Dispatcher\MessageDispatcher:
         arguments: []
         calls:
             - method: setHandlers
@@ -32,9 +29,9 @@ services:
 
     App\Util\Connection\ConnectionStorage: ~
 
-    App\Repository\GameSessionRepositoryInterface: '@App\Repository\RedisGameSessionRepository'
+    App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface: '@App\Infrastructure\Repository\GameSession\RedisGameSessionRepository'
 
     App\GameServer:
         arguments:
-            $dispatcher: '@App\Dispatcher\MessageDispatcher'
+            $dispatcher: '@App\Core\Dispatcher\MessageDispatcher'
             $connectionStorage: '@App\Util\Connection\ConnectionStorage'
