@@ -22,22 +22,14 @@ services:
     App\Handler\:
         resource: '../src/Handler'
         tags: ['app.message_handler']
-    
 
     App\Dispatcher\MessageDispatcher:
-        arguments:
-            $handlers: !tagged_iterator app.message_handler
-
-    App\Handler\JoinSessionHandler:
-        autowire: true
-        autoconfigure: false
-        public: true
-        tags: ['app.message_handler']
+        arguments: []
         calls:
-            - method: setDispatcher
+            - method: setHandlers
               arguments:
-                  - '@App\Dispatcher\MessageDispatcher'
-    
+                - !tagged_iterator app.message_handler
+
     App\Util\Connection\ConnectionStorage: ~
 
     App\Repository\GameSessionRepositoryInterface: '@App\Repository\RedisGameSessionRepository'

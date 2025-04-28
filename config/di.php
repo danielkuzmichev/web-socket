@@ -35,7 +35,7 @@ $dispatcher = $container[MessageDispatcher::class];
 /** @var MessageHandlerInterface[] $handlers */
 $handlers = [
     new CreateSessionHandler($gameSessionRepository, $connectionStorage),
-    new JoinSessionHandler($gameSessionRepository, $dispatcher, $connectionStorage),
+    new JoinSessionHandler($gameSessionRepository, $connectionStorage, $dispatcher),
     new CountdownStartHandler($gameSessionRepository),
 ];
 
@@ -44,7 +44,7 @@ foreach ($handlers as $handler) {
     $dispatcher->registerHandler($handler);
 }
 
-$gameServer = new GameServer($dispatcher, $connectionStorage);
+$gameServer = new GameServer($dispatcher, $connectionStorage, $gameSessionRepository);
 
 // Возвращаем всё нужное
 return [

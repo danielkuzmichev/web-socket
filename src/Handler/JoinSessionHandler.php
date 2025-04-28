@@ -15,14 +15,11 @@ class JoinSessionHandler implements MessageHandlerInterface
 
     public function __construct(
         GameSessionRepositoryInterface $gameSessionRepository,
-        ConnectionStorage $connectionStorage
+        ConnectionStorage $connectionStorage,
+        MessageDispatcherInterface $dispatcher
     ) {
         $this->gameSessionRepository = $gameSessionRepository;
         $this->connectionStorage = $connectionStorage;
-    }
-
-    public function setDispatcher(MessageDispatcherInterface $dispatcher): void
-    {
         $this->dispatcher = $dispatcher;
     }
 
@@ -47,15 +44,15 @@ class JoinSessionHandler implements MessageHandlerInterface
             return;
         }
 
-        // if (count($session['players']) >= 2) {
-        //     $this->sendError($conn, 'Session is full.');
-        //     return;
-        // }
+        if (count($session['players']) >= 2) {
+            $this->sendError($conn, 'Session is full.');
+            return;
+        }
 
-        // if ($this->gameSessionRepository->findByConnection($conn)) {
-        //     $this->sendError($conn, 'You already joined or created a session.');
-        //     return;
-        // }
+        if ($this->gameSessionRepository->findByConnection($conn)) {
+            $this->sendError($conn, 'You already joined or created a session.');
+            return;
+        }
 
         // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
         $this->gameSessionRepository->add($sessionId, [$conn]);
@@ -88,25 +85,25 @@ class JoinSessionHandler implements MessageHandlerInterface
     }
 
     private function startCountdown(string $sessionId): void
-{
-    if (!$this->dispatcher) {
-        return;
+    {
+        if (!$this->dispatcher) {
+            return;
+        }
+
+        $connections = $this->connectionStorage->getConnections($sessionId);
+
+        $startAt = microtime(true) + 5;
+        $startAt = round($startAt, 3);
+
+        foreach ($connections as $playerConn) {
+            $this->dispatcher->dispatchFromArray([
+                'type' => 'countdown_start',
+                'payload' => [
+                    'startAt' => $startAt,
+                    'sessionId' => $sessionId
+                ]
+            ], $playerConn);
+        }
     }
-
-    $connections = $this->connectionStorage->getConnections($sessionId);
-
-    $startAt = microtime(true) + 5;
-    $startAt = round($startAt, 3);
-
-    foreach ($connections as $playerConn) {
-        $this->dispatcher->dispatchFromArray([
-            'type' => 'countdown_start',
-            'payload' => [
-                'startAt' => $startAt,
-                'sessionId' => $sessionId
-            ]
-        ], $playerConn);
-    }
-}
 
 }

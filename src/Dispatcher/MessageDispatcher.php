@@ -38,7 +38,7 @@ class MessageDispatcher implements MessageDispatcherInterface {
         $this->dispatch($json, $conn);
     }
 
-    public function setHandlers(array $handlers): void
+    public function setHandlers(iterable $handlers): void
     {
         foreach ($handlers as $handler) {
             $this->handlers[$handler->getType()] = $handler;

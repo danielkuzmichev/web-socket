@@ -54,12 +54,12 @@ class CountdownStartHandler implements MessageHandlerInterface
             ]
         ]));
 
-        $this->startTimer($delay, $sessionId, $conn);
+        $this->startTimer($delay, $conn);
     }
 
-    private function startTimer(float $delaySeconds, string $sessionId, ConnectionInterface $conn): void
+    private function startTimer(float $delaySeconds, ConnectionInterface $conn): void
     {
-        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($sessionId, $conn) {
+        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn) {
 
             $conn->send(json_encode([
                 'type' => 'match_started',
