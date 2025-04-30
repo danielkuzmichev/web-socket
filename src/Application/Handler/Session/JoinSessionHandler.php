@@ -106,5 +106,4 @@ class JoinSessionHandler implements MessageHandlerInterface
             ], $playerConn);
         }
     }
-
 }

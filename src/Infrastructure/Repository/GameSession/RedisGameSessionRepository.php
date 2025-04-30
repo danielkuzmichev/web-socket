@@ -71,7 +71,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
         }
         foreach ($players as $playerConn) {
             $connId = $playerConn->resourceId;
-            $session['players'][] = [
+            $session['players'][$connId] = [
                 'connection_id' => $connId,
             ];
 
@@ -106,5 +106,11 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
 
         // Удаляем привязку connection -> session
         $this->redis->del("connection_to_session:{$conn->resourceId}");
+    }
+
+    public function save(mixed $session): void
+    {
+        $sessionId = $session['id'];
+        $this->redis->set("game_session:$sessionId", json_encode($session, true));
     }
 }

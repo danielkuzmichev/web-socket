@@ -19,4 +19,6 @@ interface GameSessionRepositoryInterface
     public function add(string $sessionId, array $players): void;
 
     public function removeConnection(string $sessionId, ConnectionInterface $conn): void;
+
+    public function save(mixed $session): void;
 }

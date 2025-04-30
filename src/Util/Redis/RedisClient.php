@@ -35,4 +35,9 @@ class RedisClient implements RedisClientInterface
     {
         return $this->redis->keys($keysPattern);
     }
+
+    public function exists(string $key, string $value): bool
+    {
+        return $this->redis->sIsMember($key, $value);
+    }
 }

@@ -55,22 +55,33 @@ class CountdownStartHandler implements MessageHandlerInterface
             ]
         ]));
 
-        $this->startTimer($delay, $conn);
+        $this->startTimer($delay, $conn, $sessionId);
     }
 
-    private function startTimer(float $delaySeconds, ConnectionInterface $conn): void
+    private function startTimer(float $delaySeconds, ConnectionInterface $conn, string $sessionId): void
     {
-        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn) {
+        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn, $sessionId) {
 
             $conn->send(json_encode([
                 'type' => 'match_started',
                 'payload' => ['duration' => 15]
             ]));
 
-            \React\EventLoop\Loop::get()->addTimer(15, function () use ($conn) {
+            \React\EventLoop\Loop::get()->addTimer(15, function () use ($conn, $sessionId) {
+                $session = $this->gameSessionRepository->find($sessionId);
+                $winner = null;
+                $bestResult = 0;
+                foreach($session['players'] as $player) {
+                    if($player['total'] > $bestResult) {
+                        $winner = $player['connection_id'];
+                    }
+                }
                 $conn->send(json_encode([
                     'type' => 'match_ended',
-                    'payload' => ['message' => 'Match ended!']
+                    'payload' => [
+                        'message' => 'Match ended!',
+                        'winner' => $conn->resourceId === $player['connection_id']
+                    ]
                 ]));
             });
         });
