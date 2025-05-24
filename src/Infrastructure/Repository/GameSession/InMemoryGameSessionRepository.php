@@ -73,4 +73,9 @@ class InMemoryGameSessionRepository implements GameSessionRepositoryInterface
             }
         }
     }
+
+    public function save(mixed $session): void
+    {
+        $this->sessions[$session->getId()] = $session;
+    }
 }

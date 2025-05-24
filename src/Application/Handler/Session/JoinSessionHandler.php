@@ -29,7 +29,7 @@ class JoinSessionHandler implements MessageHandlerInterface
         return 'join_session';
     }
 
-    public function handle(array $payload, ConnectionInterface $conn): void
+    public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         $sessionId = $payload['sessionId'] ?? null;
 
@@ -65,7 +65,8 @@ class JoinSessionHandler implements MessageHandlerInterface
             'type' => 'session_joined',
             'payload' => [
                 'message' => 'You joined the game session!',
-                'sessionId' => $sessionId
+                'sessionId' => $sessionId,
+                'sessionWord' => $session['sessionWord'],
             ]
         ]));
 
@@ -106,5 +107,4 @@ class JoinSessionHandler implements MessageHandlerInterface
             ], $playerConn);
         }
     }
-
 }

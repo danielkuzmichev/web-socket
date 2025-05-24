@@ -2,6 +2,7 @@
 
 namespace App\Application\Handler\Session;
 
+use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use Ratchet\ConnectionInterface;
@@ -9,10 +10,12 @@ use Ratchet\ConnectionInterface;
 class CountdownStartHandler implements MessageHandlerInterface
 {
     private GameSessionRepositoryInterface $gameSessionRepository;
+    private MessageDispatcherInterface $dispatcher;
 
-    public function __construct(GameSessionRepositoryInterface $gameSessionRepository)
+    public function __construct(GameSessionRepositoryInterface $gameSessionRepository, MessageDispatcherInterface $dispatcher)
     {
         $this->gameSessionRepository = $gameSessionRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function getType(): string
@@ -20,8 +23,7 @@ class CountdownStartHandler implements MessageHandlerInterface
         return 'countdown_start';
     }
 
-    /** @todo Проверить, что заканчивается одновременно */
-    public function handle(array $payload, ConnectionInterface $conn): void
+    public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         $startAt = $payload['startAt'] ?? null;
         $sessionId = $payload['sessionId'] ?? null;
@@ -30,16 +32,6 @@ class CountdownStartHandler implements MessageHandlerInterface
             $conn->send(json_encode([
                 'type' => 'error',
                 'payload' => ['message' => 'Missing start time or session ID.']
-            ]));
-            return;
-        }
-
-        $session = $this->gameSessionRepository->find($sessionId);
-
-        if (!$session || count($session['players']) < 2) {
-            $conn->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'Invalid or incomplete session.']
             ]));
             return;
         }
@@ -55,22 +47,42 @@ class CountdownStartHandler implements MessageHandlerInterface
             ]
         ]));
 
-        $this->startTimer($delay, $conn);
+        $this->startTimer($delay, $conn, $sessionId);
     }
 
-    private function startTimer(float $delaySeconds, ConnectionInterface $conn): void
+    private function startTimer(float $delaySeconds, ConnectionInterface $conn, string $sessionId): void
     {
-        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn) {
+        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn, $sessionId) {
 
             $conn->send(json_encode([
                 'type' => 'match_started',
                 'payload' => ['duration' => 15]
             ]));
 
-            \React\EventLoop\Loop::get()->addTimer(15, function () use ($conn) {
+            \React\EventLoop\Loop::get()->addTimer(15, function () use ($conn, $sessionId) {
                 $conn->send(json_encode([
                     'type' => 'match_ended',
-                    'payload' => ['message' => 'Match ended!']
+                    'payload' => [
+                        'message' => 'Match ended!',
+                    ]
+                ]));
+
+                $this->dispatcher->dispatchFromArray([
+                    'type' => 'summarize_results',
+                    'payload' => [
+                        'sessionId' => $sessionId
+                    ]
+                ], $conn);
+            });
+
+            /** @todo убрать в ходе рефакторинга */
+            \React\EventLoop\Loop::get()->addTimer(18, function () use ($conn, $sessionId) {
+                $this->gameSessionRepository->delete($sessionId);
+                $conn->send(json_encode([
+                    'type' => 'session_is_deleted',
+                    'payload' => [
+                        'message' => 'Session is deleted',
+                    ]
                 ]));
             });
         });

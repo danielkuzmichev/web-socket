@@ -22,20 +22,19 @@ class MessageDispatcher implements MessageDispatcherInterface {
         }
     }
 
-    public function dispatch(string $jsonMessage, ConnectionInterface $conn): void {
+    public function dispatch(string $jsonMessage, ?ConnectionInterface $conn = null): void {
         $data = json_decode($jsonMessage, true);
 
-        if (!isset($data['type']) || !isset($this->handlers[$data['type']])) {
+        $this->dispatchFromArray($data, $conn);
+    }
+
+    public function dispatchFromArray(array $message, ?ConnectionInterface $conn = null): void {
+        if (!isset($message['type']) || !isset($this->handlers[$message['type']])) {
             $conn->send(json_encode(['error' => 'Unknown message type']));
             return;
         }
 
-        $this->handlers[$data['type']]->handle($data['payload'] ?? [], $conn);
-    }
-
-    public function dispatchFromArray(array $message, ConnectionInterface $conn): void {
-        $json = json_encode($message);
-        $this->dispatch($json, $conn);
+        $this->handlers[$message['type']]->handle($message['payload'] ?? [], $conn);
     }
 
     public function setHandlers(iterable $handlers): void

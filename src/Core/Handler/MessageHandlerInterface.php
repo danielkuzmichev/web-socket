@@ -8,6 +8,6 @@ interface MessageHandlerInterface {
 
     public function getType(): string;
 
-    public function handle(array $payload, ConnectionInterface $conn): void;
+    public function handle(array $payload, ?ConnectionInterface $conn = null): void;
 
 }
