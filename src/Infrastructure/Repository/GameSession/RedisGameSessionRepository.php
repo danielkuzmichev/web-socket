@@ -14,11 +14,15 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
         $this->redis = $redis;
     }
 
-    public function create(mixed $sessionId): void
+    public function create(mixed $session): void
     {
+        $sessionId = $session['sessionId'];
+        $summaryType = $session['summaryType'];
         $session = [
             'id' => $sessionId,
             'players' => [],
+            'summary_type' => $summaryType,
+            'sessionWord' => $session['sessionWord']
         ];
         $this->redis->set("game_session:$sessionId", json_encode($session));
     }
@@ -73,6 +77,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
             $connId = $playerConn->resourceId;
             $session['players'][$connId] = [
                 'connection_id' => $connId,
+                'words' => [] // 
             ];
 
             $this->redis->set("connection_to_session:{$connId}", $sessionId);

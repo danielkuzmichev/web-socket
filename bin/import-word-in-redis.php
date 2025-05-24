@@ -22,6 +22,11 @@ while (($word = fgets($handle)) !== false) {
 
     $firstLetter = mb_substr($word, 0, 1);
     $redis->sadd("words:$firstLetter", $word);
+
+    // Если слово длиннее 13 символов, добавляем в отдельный набор
+    if (mb_strlen($word) > 13) {
+        $redis->sadd('words:long', $word);
+    }
 }
 
 fclose($handle);

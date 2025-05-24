@@ -19,7 +19,7 @@ class SendWordHandler implements MessageHandlerInterface
         return 'send_word';
     }
 
-    public function handle(array $payload, ConnectionInterface $conn): void
+    public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         $word = $payload['word'];
 
@@ -39,13 +39,15 @@ class SendWordHandler implements MessageHandlerInterface
 
             $player = &$session['players'][$connectionId]; 
 
-            if(isset($player['score'])) {
-                $player['score'] = $player['score'] + $score;
-            } else {
-                $player['score'] = $score;
+            if(!in_array($word, $player['words'])) {
+                $player['words'][] = $word;
+                if(isset($player['score'])) {
+                    $player['score'] = $player['score'] + $score;
+                } else {
+                    $player['score'] = $score;
+                }
             }
-
-            $player['words'][] = $word;
+            
             $session['players'][$connectionId] = $player;
 
             $this->sessionRepository->save($session);

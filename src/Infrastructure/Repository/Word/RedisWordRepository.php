@@ -18,4 +18,9 @@ class RedisWordRepository implements WordRepositoryInterface
         $firstLetter = mb_substr(mb_strtolower($word), 0, 1);
         return $this->redis->exists("words:$firstLetter", mb_strtolower($word));
     }
+
+    public function getRandomSessionWord(): string
+    {
+        return $this->redis->getClient()->srandmember('words:long');
+    }
 }

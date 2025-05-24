@@ -2,6 +2,8 @@
 
 namespace App\Util\Redis;
 
+use Predis\ClientInterface;
+
 class RedisClient implements RedisClientInterface
 {
     private \Redis $redis;
@@ -11,9 +13,9 @@ class RedisClient implements RedisClientInterface
         $this->redis = new \Redis();
     }
 
-    public function connect(string $host, int $port): bool
+    public function connect(string $host, int $port): void
     {
-        return $this->redis->connect($host, $port);
+        $this->redis->connect($host, $port);
     }
 
     public function get(string $key)
@@ -39,5 +41,10 @@ class RedisClient implements RedisClientInterface
     public function exists(string $key, string $value): bool
     {
         return $this->redis->sIsMember($key, $value);
+    }
+
+    public function getClient(): \Redis
+    {
+        return $this->redis;
     }
 }
