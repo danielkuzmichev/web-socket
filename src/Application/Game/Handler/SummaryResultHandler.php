@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application\Handler\Game;
+namespace App\Application\Game\Handler;
 
-use App\Application\Service\Game\Scoring\SummaryService;
+use App\Application\Game\Service\Scoring\SummaryService;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;

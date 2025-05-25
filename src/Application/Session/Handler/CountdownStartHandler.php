@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Handler\Session;
+namespace App\Application\Session\Handler;
 
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;

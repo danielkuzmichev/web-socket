@@ -2,8 +2,6 @@
 
 namespace App\Util\Redis;
 
-use Predis\ClientInterface;
-
 interface RedisClientInterface
 {
     public function connect(string $host, int $port): void;

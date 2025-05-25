@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Enum\Game;
+namespace App\Application\Game\Enum;
 
 enum GameType: string
 {

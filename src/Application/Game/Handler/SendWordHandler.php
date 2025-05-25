@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Handler\Game;
+namespace App\Application\Game\Handler;
 
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;

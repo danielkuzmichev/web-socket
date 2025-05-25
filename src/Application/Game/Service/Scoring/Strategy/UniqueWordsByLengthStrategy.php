@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Service\Game\Scoring\Strategy;
+namespace App\Application\Game\Service\Scoring\Strategy;
 
 class UniqueWordsByLengthStrategy
 {

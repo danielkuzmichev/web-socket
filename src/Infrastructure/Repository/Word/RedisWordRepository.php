@@ -8,11 +8,6 @@ class RedisWordRepository implements WordRepositoryInterface
 {
     public function __construct(private RedisClient $redis) {}
 
-    public function find(string $word): string
-    {
-        return '';
-    }
-
     public function exists(string $word): bool
     {
         $firstLetter = mb_substr(mb_strtolower($word), 0, 1);

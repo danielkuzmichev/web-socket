@@ -2,8 +2,6 @@
 
 namespace App\Util\Redis;
 
-use Predis\ClientInterface;
-
 class RedisClient implements RedisClientInterface
 {
     private \Redis $redis;

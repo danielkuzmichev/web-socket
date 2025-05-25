@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application\Service\Game\Scoring;
+namespace App\Application\Game\Service\Scoring;
 
-use App\Application\Service\Game\Scoring\Strategy\UniqueWordsByLengthStrategy;
+use App\Application\Game\Service\Scoring\Strategy\UniqueWordsByLengthStrategy;
 
 class SummaryService
 {

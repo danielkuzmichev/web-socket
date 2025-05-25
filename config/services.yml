@@ -16,8 +16,8 @@ services:
                 - 'redis'
                 - 6379
 
-    App\Application\Handler\:
-        resource: '../src/Application/Handler/*'
+    App\Application\:
+        resource: '../src/Application/*/Handler/*'
         tags: ['app.message_handler']
 
     App\Core\Dispatcher\MessageDispatcher:
