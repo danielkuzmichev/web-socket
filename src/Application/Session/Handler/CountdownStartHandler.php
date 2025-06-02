@@ -5,17 +5,24 @@ namespace App\Application\Session\Handler;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Util\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
+use React\EventLoop\Loop;
 
 class CountdownStartHandler implements MessageHandlerInterface
 {
     private GameSessionRepositoryInterface $gameSessionRepository;
     private MessageDispatcherInterface $dispatcher;
+    private ConnectionStorage $connectionStorage;
 
-    public function __construct(GameSessionRepositoryInterface $gameSessionRepository, MessageDispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        GameSessionRepositoryInterface $gameSessionRepository,
+        MessageDispatcherInterface $dispatcher,
+        ConnectionStorage $connectionStorage,
+    ) {
         $this->gameSessionRepository = $gameSessionRepository;
         $this->dispatcher = $dispatcher;
+        $this->connectionStorage = $connectionStorage;
     }
 
     public function getType(): string
@@ -25,66 +32,88 @@ class CountdownStartHandler implements MessageHandlerInterface
 
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
-        $startAt = $payload['startAt'] ?? null;
-        $sessionId = $payload['sessionId'] ?? null;
+        $session = $payload['session'] ?? null;
 
-        if (!$startAt || !$sessionId) {
-            $conn->send(json_encode([
+        if (!$session) {
+            $conn?->send(json_encode([
                 'type' => 'error',
-                'payload' => ['message' => 'Missing start time or session ID.']
+                'payload' => ['message' => 'There is no session']
             ]));
             return;
         }
 
-        $now = microtime(true);
-        $delay = max(0, $startAt - $now);
+        if (empty($session['players'])) {
+            $conn?->send(json_encode([
+                'type' => 'error',
+                'payload' => ['message' => 'There are no players in the session.']
+            ]));
+            return;
+        }
 
-        $conn->send(json_encode([
+        $sessionId = $session['id'];
+        $startAt = microtime(true) + 5; // Запуск через 5 секунд
+        $delay = max(0, $startAt - microtime(true));
+
+        // Отправляем обратный отсчёт всем игрокам
+        $this->broadcastToSession($sessionId, [
             'type' => 'countdown',
             'payload' => [
                 'startAt' => $startAt,
                 'remainingSeconds' => round($delay)
             ]
-        ]));
+        ]);
 
-        $this->startTimer($delay, $conn, $sessionId);
+        // Запускаем таймер для старта матча
+        Loop::get()->addTimer($delay, function () use ($sessionId) {
+            $this->startMatch($sessionId);
+        });
     }
 
-    private function startTimer(float $delaySeconds, ConnectionInterface $conn, string $sessionId): void
+    private function startMatch(string $sessionId): void
     {
-        \React\EventLoop\Loop::get()->addTimer($delaySeconds, function () use ($conn, $sessionId) {
+        $matchDuration = 15; // Длительность матча (сек)
 
-            $conn->send(json_encode([
-                'type' => 'match_started',
-                'payload' => ['duration' => 15]
-            ]));
+        // Уведомляем всех, что матч начался
+        $this->broadcastToSession($sessionId, [
+            'type' => 'match_started',
+            'payload' => ['duration' => $matchDuration]
+        ]);
 
-            \React\EventLoop\Loop::get()->addTimer(15, function () use ($conn, $sessionId) {
-                $conn->send(json_encode([
-                    'type' => 'match_ended',
-                    'payload' => [
-                        'message' => 'Match ended!',
-                    ]
-                ]));
-
-                $this->dispatcher->dispatchFromArray([
-                    'type' => 'summarize_results',
-                    'payload' => [
-                        'sessionId' => $sessionId
-                    ]
-                ], $conn);
-            });
-
-            /** @todo убрать в ходе рефакторинга */
-            \React\EventLoop\Loop::get()->addTimer(18, function () use ($conn, $sessionId) {
-                $this->gameSessionRepository->delete($sessionId);
-                $conn->send(json_encode([
-                    'type' => 'session_is_deleted',
-                    'payload' => [
-                        'message' => 'Session is deleted',
-                    ]
-                ]));
-            });
+        // Запускаем таймер завершения матча
+        Loop::get()->addTimer($matchDuration, function () use ($sessionId) {
+            $this->endMatch($sessionId);
         });
+    }
+
+    private function endMatch(string $sessionId): void
+    {
+        // Уведомляем всех, что матч завершён
+        $this->broadcastToSession($sessionId, [
+            'type' => 'match_ended',
+            'payload' => ['message' => 'Match ended!']
+        ]);
+
+        // Отправляем запрос на подсчёт результатов
+        $this->dispatcher->dispatchFromArray([
+            'type' => 'summarize_results',
+            'payload' => ['sessionId' => $sessionId]
+        ]);
+
+        // Удаляем сессию после небольшой задержки (чтобы клиенты успели получить результаты)
+        Loop::get()->addTimer(2, function () use ($sessionId) {
+            $this->gameSessionRepository->delete($sessionId);
+            $this->broadcastToSession($sessionId, [
+                'type' => 'session_is_deleted',
+                'payload' => ['message' => 'Session is deleted']
+            ]);
+        });
+    }
+
+    private function broadcastToSession(string $sessionId, array $message): void
+    {
+        $connections = $this->connectionStorage->getConnections($sessionId);
+        foreach ($connections as $conn) {
+            $conn->send(json_encode($message));
+        }
     }
 }

@@ -6,6 +6,7 @@ use App\Application\Game\Service\Scoring\SummaryService;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
+use App\Util\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
 
 class SummaryResultHandler implements MessageHandlerInterface
@@ -13,7 +14,8 @@ class SummaryResultHandler implements MessageHandlerInterface
     public function __construct(
         private GameSessionGameSessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository,
-        private SummaryService $summaryService
+        private SummaryService $summaryService,
+        private ConnectionStorage $connectionStorage
     ) {}
 
     public function getType(): string
@@ -24,7 +26,7 @@ class SummaryResultHandler implements MessageHandlerInterface
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         if (!isset($payload['sessionId']) || $payload['sessionId'] == null) {
-            $conn->send(json_encode([
+            $conn?->send(json_encode([
                 'type' => 'error',
                 'payload' => ['message' => 'Missing session ID.']
             ]));
@@ -35,13 +37,16 @@ class SummaryResultHandler implements MessageHandlerInterface
         $session = $this->sessionRepository->find($sessionId);
 
         $summary = $this->summaryService->summarize($session);
-        var_dump($conn->resourceId, $summary[$conn->resourceId]['is_winner']);
-        $conn->send(json_encode([
-            'type' => 'summarize_results',
-            'payload' => [
-                'message' => 'Results are summarized',
-                'winner' => isset($summary[$conn->resourceId]) && $summary[$conn->resourceId]['is_winner']
-            ]
-        ]));
+
+        $connections = $this->connectionStorage->getConnections($sessionId);
+        foreach ($connections as $playerConn) {
+            $playerConn->send(json_encode([
+                'type' => 'summarize_results',
+                'payload' => [
+                    'message' => 'Results are summarized',
+                    'results' => isset($summary[$playerConn->resourceId]) && $summary[$playerConn->resourceId]['is_winner']
+                ]
+            ]));
+        }
     }
 }

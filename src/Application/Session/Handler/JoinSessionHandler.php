@@ -11,7 +11,7 @@ use Ratchet\ConnectionInterface;
 class JoinSessionHandler implements MessageHandlerInterface
 {
     private GameSessionRepositoryInterface $gameSessionRepository;
-    private ?MessageDispatcherInterface $dispatcher = null;
+    private ?MessageDispatcherInterface $dispatcher;
     private ConnectionStorage $connectionStorage;
 
     public function __construct(
@@ -70,11 +70,10 @@ class JoinSessionHandler implements MessageHandlerInterface
             ]
         ]));
 
-        // Обновляем данные о сессии (чтобы снова не делать find)
         $session = $this->gameSessionRepository->find($sessionId);
 
         if (count($session['players']) === 2) {
-            $this->startCountdown($sessionId);
+            $this->startCountdown($session);
         }
     }
 
@@ -86,25 +85,13 @@ class JoinSessionHandler implements MessageHandlerInterface
         ]));
     }
 
-    private function startCountdown(string $sessionId): void
+    private function startCountdown(mixed $session): void
     {
-        if (!$this->dispatcher) {
-            return;
-        }
-
-        $connections = $this->connectionStorage->getConnections($sessionId);
-
-        $startAt = microtime(true) + 5;
-        $startAt = round($startAt, 3);
-
-        foreach ($connections as $playerConn) {
-            $this->dispatcher->dispatchFromArray([
-                'type' => 'countdown_start',
-                'payload' => [
-                    'startAt' => $startAt,
-                    'sessionId' => $sessionId
-                ]
-            ], $playerConn);
-        }
+        $this->dispatcher->dispatchFromArray([
+            'type' => 'countdown_start',
+            'payload' => [
+                'session' => $session
+            ]
+        ]);
     }
 }
