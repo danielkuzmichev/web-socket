@@ -16,7 +16,8 @@ class SummaryResultHandler implements MessageHandlerInterface
         private WordRepositoryInterface $wordRepository,
         private SummaryService $summaryService,
         private ConnectionStorage $connectionStorage
-    ) {}
+    ) {
+    }
 
     public function getType(): string
     {

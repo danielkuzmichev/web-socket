@@ -12,7 +12,8 @@ class SendWordHandler implements MessageHandlerInterface
     public function __construct(
         private GameSessionGameSessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository
-    ) {}
+    ) {
+    }
 
     public function getType(): string
     {
@@ -24,7 +25,7 @@ class SendWordHandler implements MessageHandlerInterface
         $word = $payload['word'];
 
         $session = $this->sessionRepository->findByConnection($conn);
-        if($session === null) {
+        if ($session === null) {
             $conn->send(json_encode([
                 'type' => 'error',
                 'payload' => ['message' => 'No session for this connection']
@@ -37,17 +38,17 @@ class SendWordHandler implements MessageHandlerInterface
             $score = mb_strlen($word);
             $connectionId = $conn->resourceId;
 
-            $player = &$session['players'][$connectionId]; 
+            $player = &$session['players'][$connectionId];
 
-            if(!in_array($word, $player['words'])) {
+            if (!in_array($word, $player['words'], true)) {
                 $player['words'][] = $word;
-                if(isset($player['score'])) {
+                if (isset($player['score'])) {
                     $player['score'] = $player['score'] + $score;
                 } else {
                     $player['score'] = $score;
                 }
             }
-            
+
             $session['players'][$connectionId] = $player;
 
             $this->sessionRepository->save($session);

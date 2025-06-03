@@ -12,7 +12,9 @@ class InMemoryGameSessionRepository implements GameSessionRepositoryInterface
     /** @var GameSession[] */
     private array $sessions = [];
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function getInstance(): self
     {
@@ -65,7 +67,7 @@ class InMemoryGameSessionRepository implements GameSessionRepositoryInterface
         if (isset($this->sessions[$sessionId])) {
             $this->sessions[$sessionId]['players'] = array_filter(
                 $this->sessions[$sessionId]['players'],
-                fn($player) => $player !== $conn
+                fn ($player) => $player !== $conn
             );
 
             if (empty($this->sessions[$sessionId]['players'])) {

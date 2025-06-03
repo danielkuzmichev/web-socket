@@ -6,7 +6,9 @@ use App\Util\Redis\RedisClient;
 
 class RedisWordRepository implements WordRepositoryInterface
 {
-    public function __construct(private RedisClient $redis) {}
+    public function __construct(private RedisClient $redis)
+    {
+    }
 
     public function exists(string $word): bool
     {

@@ -16,7 +16,7 @@ class UniqueWordsByLengthStrategy
             }
         }
 
-        $uniqueWords = array_filter($wordOwnership, fn($owners) => count($owners) === 1);
+        $uniqueWords = array_filter($wordOwnership, fn ($owners) => count($owners) === 1);
         var_dump($uniqueWords);
         // Подсчет очков
         $scores = [];

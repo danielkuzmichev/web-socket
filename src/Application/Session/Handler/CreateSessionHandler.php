@@ -40,7 +40,7 @@ class CreateSessionHandler implements MessageHandlerInterface
         }
 
         $sessionId = 1;//uniqid('session_', true);
-        if(!isset($payload['summary_type']) && $payload['summary_type']==null) {
+        if (!isset($payload['summary_type']) && $payload['summary_type'] == null) {
             $conn->send(json_encode([
                 'type' => 'error',
                 'payload' => ['message' => 'Not found summary_type']

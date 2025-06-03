@@ -77,7 +77,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
             $connId = $playerConn->resourceId;
             $session['players'][$connId] = [
                 'connection_id' => $connId,
-                'words' => [] // 
+                'words' => [] //
             ];
 
             $this->redis->set("connection_to_session:{$connId}", $sessionId);
@@ -96,7 +96,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
         // Убираем соединение из списка игроков
         $players = array_filter(
             $session['players'],
-            fn($player) => $player['connection_id'] !== $conn->resourceId
+            fn ($player) => $player['connection_id'] !== $conn->resourceId
         );
 
         // Обновляем сессию в Redis

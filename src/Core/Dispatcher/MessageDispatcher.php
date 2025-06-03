@@ -5,8 +5,8 @@ namespace App\Core\Dispatcher;
 use App\Core\Handler\MessageHandlerInterface;
 use Ratchet\ConnectionInterface;
 
-class MessageDispatcher implements MessageDispatcherInterface {
-
+class MessageDispatcher implements MessageDispatcherInterface
+{
     /**
      * @var MessageHandlerInterface[]
      */
@@ -22,13 +22,15 @@ class MessageDispatcher implements MessageDispatcherInterface {
         }
     }
 
-    public function dispatch(string $jsonMessage, ?ConnectionInterface $conn = null): void {
+    public function dispatch(string $jsonMessage, ?ConnectionInterface $conn = null): void
+    {
         $data = json_decode($jsonMessage, true);
 
         $this->dispatchFromArray($data, $conn);
     }
 
-    public function dispatchFromArray(array $message, ?ConnectionInterface $conn = null): void {
+    public function dispatchFromArray(array $message, ?ConnectionInterface $conn = null): void
+    {
         if (!isset($message['type']) || !isset($this->handlers[$message['type']])) {
             $conn->send(json_encode(['error' => 'Unknown message type']));
             return;

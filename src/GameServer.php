@@ -72,6 +72,10 @@ class GameServer implements MessageComponentInterface
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
         echo "Error: {$e->getMessage()}\n";
+        $conn->send(json_encode([
+            'type' => 'error',
+            'payload' => ['message' => $e->getMessage()]
+        ]));
         $conn->close();
     }
 }
