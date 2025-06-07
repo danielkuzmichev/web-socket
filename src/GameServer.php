@@ -48,7 +48,7 @@ class GameServer implements MessageComponentInterface
         $this->connectionStorage->remove($conn);
 
         // 2. Удаляем соединение из GameSessionRepository
-        $sessionId = $this->gameSessionRepository->findByConnection($conn);
+        $sessionId = $this->gameSessionRepository->findByConnection($conn)['id'];
 
         if ($sessionId !== null) {
             $this->gameSessionRepository->removeConnection($sessionId, $conn);
