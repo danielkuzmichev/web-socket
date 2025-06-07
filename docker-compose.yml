@@ -1,12 +1,16 @@
-version: '3.8'
-
 services:
   websocket-server:
     build: .
     volumes:
-      - .:/var/www/html
+      - ./:/var/www/html
+      - ./xdebug_logs:/var/log/
     ports:
       - "8080:8080"
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: "client_host=host.docker.internal"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: php bin/server.php
     depends_on:
       - redis
