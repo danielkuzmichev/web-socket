@@ -5,18 +5,15 @@ namespace Tests\Session;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Infrastructure\Repository\GameSession\RedisGameSessionRepository;
 use Tests\BaseWebSocketTestCase;
-use Tests\Trait\JsonAssertionsTrait;
 
 class WebSocketTest extends BaseWebSocketTestCase
 {
-    use JsonAssertionsTrait;
-
-    private GameSessionRepositoryInterface $sessionReposirory;
+    private GameSessionRepositoryInterface $sessionRepository;
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->sessionRepository = new RedisGameSessionRepository($this->redis);
+        $this->sessionRepository = $this->getFromContainer(RedisGameSessionRepository::class);
     }
 
     public function testWebSocketResponds()

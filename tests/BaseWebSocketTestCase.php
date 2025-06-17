@@ -2,50 +2,54 @@
 
 namespace Tests;
 
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
-use App\Infrastructure\Repository\GameSession\RedisGameSessionRepository;
-use App\Util\Redis\RedisClient;
 use PHPUnit\Framework\TestCase;
+use Tests\Trait\JsonAssertionsTrait;
 use Wrench\Client;
 
 abstract class BaseWebSocketTestCase extends TestCase
 {
-    protected GameSessionRepositoryInterface $sessionRepository;
+    use JsonAssertionsTrait;
+
     protected Client $client;
-    protected RedisClient $redis;
+    private static $container;
 
     public function setUp(): void
     {
-        parent::setUp(); // Важно вызывать родительский setUp()
+        parent::setUp();
+        $this->initWebSocketClient();
+        self::$container = $GLOBALS['TEST_CONTAINER'];
+    }
 
-        // Инициализация Redis
-        $this->redis = new RedisClient();
-        $this->redis->connect('redis', 6379);
-
-        // Инициализация WebSocket-клиента
+    protected function initWebSocketClient(): void
+    {
         $this->client = new Client('ws://127.0.0.1:8080/', 'http://localhost', [
             'timeout' => 2,
         ]);
         $this->client->connect();
     }
 
-    public function tearDown(): void
-    {
-        // Закрываем соединение (если нужно)
-        if (isset($this->client)) {
-            $this->client->disconnect();
-        }
-
-        parent::tearDown(); // Важно вызывать родительский tearDown()
-    }
-
-    /**
-     * Отправляет сообщение в WebSocket и возвращает ответ.
-     */
     protected function sendWebSocketMessage(array $message): array
     {
         $this->client->sendData(json_encode($message));
         $response = $this->client->receive();
         return $this->getArrayFromJson($response[0]->getPayload());
+    }
+
+    public function tearDown(): void
+    {
+        if (isset($this->client)) {
+            $this->client->disconnect();
+        }
+        parent::tearDown();
+    }
+
+    public function getContainer(): mixed 
+    {
+        return self::$container;
+    }
+
+    public function getFromContainer(string $class): mixed
+    {
+        return $this->getContainer()->get($class);
     }
 }
