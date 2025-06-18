@@ -11,13 +11,11 @@ abstract class BaseWebSocketTestCase extends TestCase
     use JsonAssertionsTrait;
 
     protected Client $client;
-    private static $container;
 
     public function setUp(): void
     {
         parent::setUp();
         $this->initWebSocketClient();
-        self::$container = $GLOBALS['TEST_CONTAINER'];
     }
 
     protected function initWebSocketClient(): void
@@ -32,7 +30,7 @@ abstract class BaseWebSocketTestCase extends TestCase
     {
         $this->client->sendData(json_encode($message));
         $response = $this->client->receive();
-        return $this->getArrayFromJson($response[0]->getPayload());
+        return $this->getArrayFromJson(end($response)->getPayload());
     }
 
     public function tearDown(): void
@@ -43,9 +41,9 @@ abstract class BaseWebSocketTestCase extends TestCase
         parent::tearDown();
     }
 
-    public function getContainer(): mixed 
+    public function getContainer(): mixed
     {
-        return self::$container;
+        return TestContainerLocator::get();
     }
 
     public function getFromContainer(string $class): mixed
