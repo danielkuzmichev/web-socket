@@ -3,42 +3,17 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-use Tests\Trait\JsonAssertionsTrait;
-use Wrench\Client;
 
 abstract class BaseWebSocketTestCase extends TestCase
 {
-    use JsonAssertionsTrait;
-
-    protected Client $client;
-
     public function setUp(): void
     {
         parent::setUp();
-        $this->initWebSocketClient();
     }
 
-    protected function initWebSocketClient(): void
+    public function getClient(): WebSocketClientDecorator
     {
-        $this->client = new Client('ws://127.0.0.1:8080/', 'http://localhost', [
-            'timeout' => 2,
-        ]);
-        $this->client->connect();
-    }
-
-    protected function sendWebSocketMessage(array $message): array
-    {
-        $this->client->sendData(json_encode($message));
-        $response = $this->client->receive();
-        return $this->getArrayFromJson(end($response)->getPayload());
-    }
-
-    public function tearDown(): void
-    {
-        if (isset($this->client)) {
-            $this->client->disconnect();
-        }
-        parent::tearDown();
+        return new WebSocketClientDecorator();
     }
 
     public function getContainer(): mixed
@@ -49,5 +24,49 @@ abstract class BaseWebSocketTestCase extends TestCase
     public function getFromContainer(string $class): mixed
     {
         return $this->getContainer()->get($class);
+    }
+
+    /**
+     * Рекурсивно проверяет структуру массива
+     *
+     * @param array $data Проверяемые данные
+     * @param array $structure Ожидаемая структура
+     * @param string $path Текущий путь (для сообщений об ошибках)
+     */
+    protected function assertArrayStructure(
+        array $data,
+        array $structure,
+        string $path = ''
+    ): void {
+        foreach ($structure as $key => $expected) {
+            $currentPath = $path ? "$path.$key" : $key;
+
+            // Если ключ числовой (0 => 'field'), проверяем только наличие поля
+            $field = is_int($key) ? $expected : $key;
+
+            $this->assertArrayHasKey(
+                $field,
+                $data,
+                "Missing required field: $currentPath"
+            );
+
+            // Если значение не массив и не числовой ключ, проверяем значение
+            if (!is_int($key) && !is_array($expected)) {
+                $this->assertEquals(
+                    $expected,
+                    $data[$field],
+                    "Invalid value for field: $currentPath"
+                );
+            }
+
+            // Рекурсивная проверка вложенных массивов
+            if (is_array($expected) && is_array($data[$field])) {
+                $this->assertArrayStructure(
+                    $data[$field],
+                    $expected,
+                    $currentPath
+                );
+            }
+        }
     }
 }

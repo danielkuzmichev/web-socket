@@ -5,28 +5,31 @@ namespace Tests\Session;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Infrastructure\Repository\GameSession\RedisGameSessionRepository;
 use Tests\BaseWebSocketTestCase;
+use Tests\WebSocketClientDecorator;
 
 class CreateSessionTest extends BaseWebSocketTestCase
 {
     private GameSessionRepositoryInterface $sessionRepository;
+    private WebSocketClientDecorator $client;
 
     public function setUp(): void
     {
         parent::setUp();
         $this->sessionRepository = $this->getFromContainer(RedisGameSessionRepository::class);
+        $this->client = $this->getClient();
     }
 
     public function testCreateSessionAndThenRejectDuplicate()
     {
         // 1. Первое создание сессии - должно быть успешно
-        $firstResponse = $this->sendCreateSessionRequest();
+        $firstResponse = $this->sendCreateSessionRequest()[0];
 
         $this->assertSessionCreatedSuccessfully($firstResponse);
         $sessionId = $firstResponse['payload']['sessionId'];
         $this->assertSessionExistsInRepository($sessionId);
 
         // 2. Повторная попытка создания - должна вернуть ошибку
-        $secondResponse = $this->sendCreateSessionRequest();
+        $secondResponse = $this->sendCreateSessionRequest()[1];
 
         $this->assertDuplicateSessionError($secondResponse);
     }
@@ -41,7 +44,7 @@ class CreateSessionTest extends BaseWebSocketTestCase
             ]
         ];
 
-        return $this->sendWebSocketMessage($message);
+        return $this->client->sendWebSocketMessage($message);
     }
 
     private function assertSessionCreatedSuccessfully(array $response): void
