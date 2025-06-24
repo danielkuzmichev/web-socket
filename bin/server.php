@@ -10,7 +10,7 @@ use App\GameServer;
 $container = require __DIR__ . '/../config/container.php';
 
 
-$gameServer = $container->get(App\GameServer::class);
+$gameServer = $container->get(GameServer::class);
 
 // Создаем и запускаем сервер
 $server = IoServer::factory(

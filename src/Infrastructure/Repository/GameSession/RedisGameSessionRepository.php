@@ -77,7 +77,7 @@ class RedisGameSessionRepository implements GameSessionRepositoryInterface
             $connId = $playerConn->resourceId;
             $session['players'][$connId] = [
                 'connection_id' => $connId,
-                'words' => [] //
+                'words' => []
             ];
 
             $this->redis->set("connection_to_session:{$connId}", $sessionId);

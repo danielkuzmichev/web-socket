@@ -39,7 +39,7 @@ class CreateSessionHandler implements MessageHandlerInterface
             return;
         }
 
-        $sessionId = 1;//uniqid('session_', true);
+        $sessionId = uniqid(more_entropy: true);
         if (!isset($payload['summary_type']) && $payload['summary_type'] == null) {
             $conn->send(json_encode([
                 'type' => 'error',

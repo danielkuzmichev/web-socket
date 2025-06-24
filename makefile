@@ -40,3 +40,6 @@ cs-fix:
 # Проверка стиля без изменений
 cs-check:
 	docker compose exec $(APP_CONTAINER) ./vendor/bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
+
+test:
+	docker compose exec $(APP_CONTAINER) ./vendor/bin/phpunit tests

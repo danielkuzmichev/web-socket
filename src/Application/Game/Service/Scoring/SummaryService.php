@@ -13,6 +13,7 @@ class SummaryService
 
         $result = match($summaryType) {
             'unique_words_by_length' => UniqueWordsByLengthStrategy::calculate($players),
+            default => UniqueWordsByLengthStrategy::calculate($players)
         };
 
         return $result;
