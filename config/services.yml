@@ -31,6 +31,8 @@ services:
 
     App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface: '@App\Infrastructure\Repository\GameSession\RedisGameSessionRepository'
 
+    App\Application\Session\Service\SessionServiceInterface: '@App\Application\Session\Service\SessionService'
+
     App\GameServer:
         arguments:
             $dispatcher: '@App\Core\Dispatcher\MessageDispatcher'

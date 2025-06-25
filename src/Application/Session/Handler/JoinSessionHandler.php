@@ -2,29 +2,20 @@
 
 namespace App\Application\Session\Handler;
 
+use App\Application\Session\Service\SessionServiceInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
-use App\Util\Connection\ConnectionStorage;
-use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\InvalidDataException;
-use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
 class JoinSessionHandler implements MessageHandlerInterface
 {
-    private GameSessionRepositoryInterface $gameSessionRepository;
-    private ?MessageDispatcherInterface $dispatcher;
-    private ConnectionStorage $connectionStorage;
-
     public function __construct(
-        GameSessionRepositoryInterface $gameSessionRepository,
-        ConnectionStorage $connectionStorage,
-        MessageDispatcherInterface $dispatcher
+        private SessionServiceInterface $sessionService,
+        private GameSessionRepositoryInterface $gameSessionRepository,
+        private ?MessageDispatcherInterface $dispatcher,
     ) {
-        $this->gameSessionRepository = $gameSessionRepository;
-        $this->connectionStorage = $connectionStorage;
-        $this->dispatcher = $dispatcher;
     }
 
     public function getType(): string
@@ -40,25 +31,9 @@ class JoinSessionHandler implements MessageHandlerInterface
             throw new InvalidDataException('Missing session ID.');
         }
 
+        $this->sessionService->joinToSession($conn, $sessionId);
+
         $session = $this->gameSessionRepository->find($sessionId);
-
-        if (!$session) {
-            throw new NotFoundException('Session not found.');
-        }
-
-        if (count($session['players']) >= 2) {
-            throw new DomainLogicalException('Session is full.');
-        }
-
-        if ($this->gameSessionRepository->findByConnection($conn)) {
-            throw new DomainLogicalException('You already joined or created a session.');
-        }
-
-        // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
-        $this->gameSessionRepository->add($sessionId, [$conn]);
-
-        // И в ConnectionStorage
-        $this->connectionStorage->add($sessionId, $conn);
 
         $conn->send(json_encode([
             'type' => 'session_joined',
@@ -68,8 +43,6 @@ class JoinSessionHandler implements MessageHandlerInterface
                 'sessionWord' => $session['sessionWord'],
             ]
         ]));
-
-        $session = $this->gameSessionRepository->find($sessionId);
 
         if (count($session['players']) === 2) {
             $this->startCountdown($session);
