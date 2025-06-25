@@ -6,6 +6,9 @@ use App\Core\Handler\MessageHandlerInterface;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use App\Util\Exception\DomainLogicalException;
+use App\Util\Exception\InvalidDataException;
+use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
 class JoinSessionHandler implements MessageHandlerInterface
@@ -34,25 +37,21 @@ class JoinSessionHandler implements MessageHandlerInterface
         $sessionId = $payload['sessionId'] ?? null;
 
         if (!$sessionId) {
-            $this->sendError($conn, 'Missing session ID.');
-            return;
+            throw new InvalidDataException('Missing session ID.');
         }
 
         $session = $this->gameSessionRepository->find($sessionId);
 
         if (!$session) {
-            $this->sendError($conn, 'Session not found.');
-            return;
+            throw new NotFoundException('Session not found.');
         }
 
         if (count($session['players']) >= 2) {
-            $this->sendError($conn, 'Session is full.');
-            return;
+            throw new DomainLogicalException('Session is full.');
         }
 
         if ($this->gameSessionRepository->findByConnection($conn)) {
-            $this->sendError($conn, 'You already joined or created a session.');
-            return;
+            throw new DomainLogicalException('You already joined or created a session.');
         }
 
         // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
@@ -75,14 +74,6 @@ class JoinSessionHandler implements MessageHandlerInterface
         if (count($session['players']) === 2) {
             $this->startCountdown($session);
         }
-    }
-
-    private function sendError(ConnectionInterface $conn, string $message): void
-    {
-        $conn->send(json_encode([
-            'type' => 'error',
-            'payload' => ['message' => $message]
-        ]));
     }
 
     private function startCountdown(mixed $session): void

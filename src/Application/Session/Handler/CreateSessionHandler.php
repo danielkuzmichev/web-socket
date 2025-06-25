@@ -6,6 +6,9 @@ use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use App\Util\Exception\DuplicateException;
+use App\Util\Exception\InvalidDataException;
+use App\Util\Exception\InvalidException;
 use Ratchet\ConnectionInterface;
 
 class CreateSessionHandler implements MessageHandlerInterface
@@ -32,20 +35,12 @@ class CreateSessionHandler implements MessageHandlerInterface
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         if ($this->gameSessionRepository->findByConnection($conn)) {
-            $conn->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'You already created or joined a session.']
-            ]));
-            return;
+            throw new DuplicateException('You already created or joined a session.');
         }
 
         $sessionId = uniqid(more_entropy: true);
         if (!isset($payload['summary_type']) && $payload['summary_type'] == null) {
-            $conn->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'Not found summary_type']
-            ]));
-            return;
+            throw new InvalidDataException('Not found summary_type');
         }
 
         $sessionWord = $this->wordRepository->getRandomSessionWord();

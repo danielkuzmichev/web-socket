@@ -5,6 +5,7 @@ namespace App\Application\Game\Handler;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
+use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
 class SendWordHandler implements MessageHandlerInterface
@@ -26,10 +27,7 @@ class SendWordHandler implements MessageHandlerInterface
 
         $session = $this->sessionRepository->findByConnection($conn);
         if ($session === null) {
-            $conn->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'No session for this connection']
-            ]));
+            throw new NotFoundException('No session for this connection');
         }
 
         $wordExists = $this->wordRepository->exists($word);

@@ -6,6 +6,7 @@ use App\Core\Dispatcher\MessageDispatcherInterface;
 use Ratchet\ConnectionInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use App\Util\Exception\ReturnableException;
 use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
@@ -74,8 +75,10 @@ class GameServer implements MessageComponentInterface
         echo "Error: {$e->getMessage()}\n";
         $conn->send(json_encode([
             'type' => 'error',
-            'payload' => ['message' => $e->getMessage()]
+            'payload' => ['message' => $e->getMessage(), 'code' => $e->getCode()]
         ]));
-        $conn->close();
+        if (!$e instanceof ReturnableException) {
+            $conn->close();
+        }
     }
 }

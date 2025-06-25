@@ -75,22 +75,23 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $this->assertCount(2, $updatedSession['players']);
     }
 
-    // public function testJoinNonExistingSession()
-    // {
-    //     $client = $this->getClient();
-    //     $client->sendWebSocketMessage([
-    //         'type' => 'join_session',
-    //         'payload' => [
-    //             'player' => 'Sinem',
-    //             'sessionId' => 'non_existing_id'
-    //         ]
-    //     ]);
+    public function testJoinNonExistingSession()
+    {
+        $client = $this->getClient();
+        $client->sendWebSocketMessage([
+            'type' => 'join_session',
+            'payload' => [
+                'player' => 'Sinem',
+                'sessionId' => 'non_existing_id'
+            ]
+        ]);
 
-    //     $this->assertEquals([
-    //         'type' => 'error',
-    //         'payload' => [
-    //             'message' => 'Session not found.'
-    //         ]
-    //     ], $client->getResponseMessages()[0]);
-    // }
+        $this->assertEquals([
+            'type' => 'error',
+            'payload' => [
+                'message' => 'Session not found.',
+                'code' => 404
+            ]
+        ], $client->getResponseMessages()[0]);
+    }
 }

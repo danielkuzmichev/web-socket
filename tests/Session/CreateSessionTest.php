@@ -71,7 +71,8 @@ class CreateSessionTest extends BaseWebSocketTestCase
         $expectedError = [
             'type' => 'error',
             'payload' => [
-                'message' => 'You already created or joined a session.'
+                'message' => 'You already created or joined a session.',
+                'code' => 409,
             ]
         ];
 

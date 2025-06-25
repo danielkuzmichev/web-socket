@@ -6,6 +6,8 @@ use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use App\Util\Exception\DomainLogicalException;
+use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Loop;
 
@@ -35,19 +37,11 @@ class CountdownStartHandler implements MessageHandlerInterface
         $session = $payload['session'] ?? null;
 
         if (!$session) {
-            $conn?->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'There is no session']
-            ]));
-            return;
+            throw new NotFoundException('There is no session');
         }
 
         if (empty($session['players'])) {
-            $conn?->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'There are no players in the session.']
-            ]));
-            return;
+            throw new DomainLogicalException('There are no players in the session.');
         }
 
         $sessionId = $session['id'];

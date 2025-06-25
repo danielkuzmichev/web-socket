@@ -7,6 +7,7 @@ use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
+use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
 class SummaryResultHandler implements MessageHandlerInterface
@@ -27,11 +28,7 @@ class SummaryResultHandler implements MessageHandlerInterface
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
         if (!isset($payload['sessionId']) || $payload['sessionId'] == null) {
-            $conn?->send(json_encode([
-                'type' => 'error',
-                'payload' => ['message' => 'Missing session ID.']
-            ]));
-            return;
+            throw new InvalidDataException('Missing session ID.');
         }
 
         $sessionId = $payload['sessionId'];
