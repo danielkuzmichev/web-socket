@@ -71,30 +71,36 @@ class SessionService implements SessionServiceInterface
         $this->connectionStorage->add($sessionId, $player);
     }
 
-    public function setStart(string $sessionId, ?DateTime $time = null): void
+    public function setStart(string $sessionId, ?DateTime $time = null): array
     {
         $session = $this->gameSessionRepository->find($sessionId);
 
         if (!$session) {
-            throw new NotFoundException('There is no session');
+            throw new NotFoundException('Session not found');
         }
 
         if (empty($session['players'])) {
-            throw new DomainLogicalException('There are no players in the session.');
+            throw new DomainLogicalException('Cannot start empty session');
         }
 
-        if($time === null) {
-            $startAt = microtime(true);
-        } else {
-            if(new DateTime() >= $time) {
-                throw new InvalidDataException('You cannot start game early - ' . $time->format('dd.mm.YY HH:MM:II'));
-            }
-            $startAt = (float)$time->format('U.u');
-        }
+        $startAt = $time
+            ? $this->validateFutureTime($time)
+            : microtime(true);
 
         $session['startAt'] = $startAt;
-
         $this->gameSessionRepository->save($session);
+
+        return $session;
+    }
+
+    private function validateFutureTime(DateTime $time): float
+    {
+        if (new DateTime() >= $time) {
+            throw new InvalidDataException(
+                sprintf('Start time must be in future (%s)', $time->format('d.m.Y H:i:s'))
+            );
+        }
+        return (float)$time->format('U.u');
     }
 
     public function delete(string $sessionId): void

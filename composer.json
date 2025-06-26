@@ -4,7 +4,8 @@
         "predis/predis": "^2.3",
         "symfony/dependency-injection": "^7.2",
         "symfony/config": "^7.2",
-        "symfony/yaml": "^7.2"
+        "symfony/yaml": "^7.2",
+        "react/event-loop": "^1.5"
     },
     "autoload": {
       "psr-4": {

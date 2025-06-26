@@ -9,6 +9,10 @@ services:
         exclude:
             - '../src/Tests/'
 
+    App\Application\Session\Service\TimerService:
+        tags:
+            - { name: 'app.service' }
+
     App\Util\Redis\RedisClient:
         calls:
             - method: connect

@@ -2,8 +2,8 @@
 
 namespace App\Application\Session\Handler;
 
-use App\Application\Session\Service\SessionService;
 use App\Application\Session\Service\SessionServiceInterface;
+use App\Application\Session\Service\TimerService;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
@@ -18,7 +18,9 @@ class StartSessionHandler implements MessageHandlerInterface
         private MessageDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
         private SessionServiceInterface $sessionService,
-    ) {}
+        private TimerService $timerService
+    ) {
+    }
 
     public function getType(): string
     {
@@ -27,14 +29,12 @@ class StartSessionHandler implements MessageHandlerInterface
 
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
-        $sessionId = $payload['sessionId'];
-        $this->sessionService->setStart($sessionId);
-        $session = $this->gameSessionRepository->find($sessionId);
+        $session = $this->sessionService->setStart($payload['sessionId']);
         $startAt = $session['startAt'] + 5;
         $delay = max(0, $startAt - microtime(true));
 
         // Отправляем обратный отсчёт всем игрокам
-        $this->broadcastToSession($sessionId, [
+        $this->broadcastToSession($payload['sessionId'], [
             'type' => 'countdown',
             'payload' => [
                 'startAt' => $startAt,
@@ -42,26 +42,27 @@ class StartSessionHandler implements MessageHandlerInterface
             ]
         ]);
 
-        // Запускаем таймер для старта матча
-        Loop::get()->addTimer($delay, function () use ($sessionId) {
-            $this->startMatch($sessionId);
-        });
+        $this->timerService->add(
+            $session['id'],
+            $delay,
+            fn () => $this->startMatch($session['id'])
+        );
     }
 
     private function startMatch(string $sessionId): void
     {
-        $matchDuration = 15; // Длительность матча (сек)
-
+        $matchDuration = 15; // Длительность матча
         // Уведомляем всех, что матч начался
         $this->broadcastToSession($sessionId, [
             'type' => 'match_started',
             'payload' => ['duration' => $matchDuration]
         ]);
 
-        // Запускаем таймер завершения матча
-        Loop::get()->addTimer($matchDuration, function () use ($sessionId) {
-            $this->endMatch($sessionId);
-        });
+        $this->timerService->add(
+            $sessionId,
+            $matchDuration,
+            fn () => $this->endMatch($sessionId)
+        );
     }
 
     private function endMatch(string $sessionId): void
@@ -90,6 +91,7 @@ class StartSessionHandler implements MessageHandlerInterface
 
     private function broadcastToSession(string $sessionId, array $message): void
     {
+        var_dump(222);
         $connections = $this->connectionStorage->getConnections($sessionId);
         foreach ($connections as $conn) {
             $conn->send(json_encode($message));
