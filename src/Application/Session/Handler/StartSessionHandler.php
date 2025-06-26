@@ -2,50 +2,35 @@
 
 namespace App\Application\Session\Handler;
 
+use App\Application\Session\Service\SessionService;
+use App\Application\Session\Service\SessionServiceInterface;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
-use App\Util\Exception\DomainLogicalException;
-use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Loop;
 
-class CountdownStartHandler implements MessageHandlerInterface
+class StartSessionHandler implements MessageHandlerInterface
 {
-    private GameSessionRepositoryInterface $gameSessionRepository;
-    private MessageDispatcherInterface $dispatcher;
-    private ConnectionStorage $connectionStorage;
-
     public function __construct(
-        GameSessionRepositoryInterface $gameSessionRepository,
-        MessageDispatcherInterface $dispatcher,
-        ConnectionStorage $connectionStorage,
-    ) {
-        $this->gameSessionRepository = $gameSessionRepository;
-        $this->dispatcher = $dispatcher;
-        $this->connectionStorage = $connectionStorage;
-    }
+        private GameSessionRepositoryInterface $gameSessionRepository,
+        private MessageDispatcherInterface $dispatcher,
+        private ConnectionStorage $connectionStorage,
+        private SessionServiceInterface $sessionService,
+    ) {}
 
     public function getType(): string
     {
-        return 'countdown_start';
+        return 'start_session';
     }
 
     public function handle(array $payload, ?ConnectionInterface $conn = null): void
     {
-        $session = $payload['session'] ?? null;
-
-        if (!$session) {
-            throw new NotFoundException('There is no session');
-        }
-
-        if (empty($session['players'])) {
-            throw new DomainLogicalException('There are no players in the session.');
-        }
-
-        $sessionId = $session['id'];
-        $startAt = microtime(true) + 5; // Запуск через 5 секунд
+        $sessionId = $payload['sessionId'];
+        $this->sessionService->setStart($sessionId);
+        $session = $this->gameSessionRepository->find($sessionId);
+        $startAt = $session['startAt'] + 5;
         $delay = max(0, $startAt - microtime(true));
 
         // Отправляем обратный отсчёт всем игрокам
@@ -95,7 +80,7 @@ class CountdownStartHandler implements MessageHandlerInterface
 
         // Удаляем сессию после небольшой задержки (чтобы клиенты успели получить результаты)
         Loop::get()->addTimer(2, function () use ($sessionId) {
-            $this->gameSessionRepository->delete($sessionId);
+            $this->sessionService->delete($sessionId);
             $this->broadcastToSession($sessionId, [
                 'type' => 'session_is_deleted',
                 'payload' => ['message' => 'Session is deleted']

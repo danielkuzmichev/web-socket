@@ -9,6 +9,7 @@ use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\DuplicateException;
 use App\Util\Exception\InvalidDataException;
 use App\Util\Exception\NotFoundException;
+use DateTime;
 
 class SessionService implements SessionServiceInterface
 {
@@ -68,5 +69,36 @@ class SessionService implements SessionServiceInterface
 
         // И в ConnectionStorage
         $this->connectionStorage->add($sessionId, $player);
+    }
+
+    public function setStart(string $sessionId, ?DateTime $time = null): void
+    {
+        $session = $this->gameSessionRepository->find($sessionId);
+
+        if (!$session) {
+            throw new NotFoundException('There is no session');
+        }
+
+        if (empty($session['players'])) {
+            throw new DomainLogicalException('There are no players in the session.');
+        }
+
+        if($time === null) {
+            $startAt = microtime(true);
+        } else {
+            if(new DateTime() >= $time) {
+                throw new InvalidDataException('You cannot start game early - ' . $time->format('dd.mm.YY HH:MM:II'));
+            }
+            $startAt = (float)$time->format('U.u');
+        }
+
+        $session['startAt'] = $startAt;
+
+        $this->gameSessionRepository->save($session);
+    }
+
+    public function delete(string $sessionId): void
+    {
+        $this->gameSessionRepository->delete($sessionId);
     }
 }

@@ -45,16 +45,16 @@ class JoinSessionHandler implements MessageHandlerInterface
         ]));
 
         if (count($session['players']) === 2) {
-            $this->startCountdown($session);
+            $this->startCountdown($sessionId);
         }
     }
 
-    private function startCountdown(mixed $session): void
+    private function startCountdown(string $sessionId): void
     {
         $this->dispatcher->dispatchFromArray([
-            'type' => 'countdown_start',
+            'type' => 'start_session',
             'payload' => [
-                'session' => $session
+                'sessionId' => $sessionId
             ]
         ]);
     }
