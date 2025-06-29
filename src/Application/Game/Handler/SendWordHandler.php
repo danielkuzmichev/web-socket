@@ -2,9 +2,9 @@
 
 namespace App\Application\Game\Handler;
 
+use App\Application\Game\Service\WordService;
 use App\Core\Handler\MessageHandlerInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
-use App\Infrastructure\Repository\Word\WordRepositoryInterface;
+use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
 use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
@@ -12,8 +12,8 @@ use Ratchet\ConnectionInterface;
 class SendWordHandler implements MessageHandlerInterface
 {
     public function __construct(
-        private GameSessionGameSessionRepositoryInterface $sessionRepository,
-        private WordRepositoryInterface $wordRepository
+        private GameSessionRepositoryInterface $sessionRepository,
+        private WordService $wordService
     ) {
     }
 
@@ -35,32 +35,15 @@ class SendWordHandler implements MessageHandlerInterface
             throw new DomainLogicalException('You cannot send word early');
         }
 
-        $wordExists = $this->wordRepository->exists($word);
+        $result = $this->wordService->score($word, $conn->resourceId, $session);
 
-        if ($wordExists) {
-            $score = mb_strlen($word);
-            $connectionId = $conn->resourceId;
-
-            $player = &$session['players'][$connectionId];
-
-            if (!in_array($word, $player['words'], true)) {
-                $player['words'][] = $word;
-                if (isset($player['score'])) {
-                    $player['score'] = $player['score'] + $score;
-                } else {
-                    $player['score'] = $score;
-                }
-            }
-
-            $session['players'][$connectionId] = $player;
-
-            $this->sessionRepository->save($session);
+        if (!empty($result['score'])) {
             $conn->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
                     'message' => 'found_word',
-                    'score' => $score,
-                    'total' => $player['score']
+                    'score' => $result['score'],
+                    'total' => $session['players'][$conn->resourceId]['score'] + $result['score']
                 ]
             ]));
         } else {

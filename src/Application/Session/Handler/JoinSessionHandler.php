@@ -51,7 +51,6 @@ class JoinSessionHandler implements MessageHandlerInterface
 
     private function startCountdown(string $sessionId): void
     {
-        var_dump(1234);
         $this->dispatcher->dispatchFromArray([
             'type' => 'start_session',
             'payload' => [

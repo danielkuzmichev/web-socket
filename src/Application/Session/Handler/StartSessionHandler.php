@@ -91,7 +91,6 @@ class StartSessionHandler implements MessageHandlerInterface
 
     private function broadcastToSession(string $sessionId, array $message): void
     {
-        var_dump(222);
         $connections = $this->connectionStorage->getConnections($sessionId);
         foreach ($connections as $conn) {
             $conn->send(json_encode($message));
