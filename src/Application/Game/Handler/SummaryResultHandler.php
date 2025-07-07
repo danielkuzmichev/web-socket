@@ -4,7 +4,7 @@ namespace App\Application\Game\Handler;
 
 use App\Application\Game\Service\Scoring\SummaryService;
 use App\Core\Handler\MessageHandlerInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface as GameSessionGameSessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
 use App\Util\Exception\InvalidDataException;
@@ -14,7 +14,6 @@ class SummaryResultHandler implements MessageHandlerInterface
 {
     public function __construct(
         private GameSessionGameSessionRepositoryInterface $sessionRepository,
-        private WordRepositoryInterface $wordRepository,
         private SummaryService $summaryService,
         private ConnectionStorage $connectionStorage
     ) {

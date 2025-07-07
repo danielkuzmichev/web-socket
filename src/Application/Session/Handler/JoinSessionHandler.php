@@ -5,7 +5,7 @@ namespace App\Application\Session\Handler;
 use App\Application\Session\Service\SessionServiceInterface;
 use App\Core\Handler\MessageHandlerInterface;
 use App\Core\Dispatcher\MessageDispatcherInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
@@ -13,7 +13,7 @@ class JoinSessionHandler implements MessageHandlerInterface
 {
     public function __construct(
         private SessionServiceInterface $sessionService,
-        private GameSessionRepositoryInterface $gameSessionRepository,
+        private SessionRepositoryInterface $sessionRepository,
         private ?MessageDispatcherInterface $dispatcher,
     ) {
     }
@@ -33,7 +33,7 @@ class JoinSessionHandler implements MessageHandlerInterface
 
         $this->sessionService->joinToSession($conn, $sessionId);
 
-        $session = $this->gameSessionRepository->find($sessionId);
+        $session = $this->sessionRepository->find($sessionId);
 
         $conn->send(json_encode([
             'type' => 'session_joined',

@@ -8,6 +8,7 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Tests/'
+            - '../src/*/Entity'
 
     App\Application\Session\Service\TimerService:
         tags:
@@ -33,7 +34,7 @@ services:
 
     App\Util\Connection\ConnectionStorage: ~
 
-    App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface: '@App\Infrastructure\Repository\GameSession\RedisGameSessionRepository'
+    App\Infrastructure\Repository\Session\SessionRepositoryInterface: '@App\Infrastructure\Repository\Session\RedisSessionRepository'
 
     App\Application\Session\Service\SessionServiceInterface: '@App\Application\Session\Service\SessionService'
 

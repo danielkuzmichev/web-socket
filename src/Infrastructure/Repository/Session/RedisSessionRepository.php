@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Infrastructure\Repository\GameSession;
+namespace App\Infrastructure\Repository\Session;
 
 use App\Util\Redis\RedisClientInterface;
 use Ratchet\ConnectionInterface;
 
-class RedisGameSessionRepository implements GameSessionRepositoryInterface
+class RedisSessionRepository implements SessionRepositoryInterface
 {
     private RedisClientInterface $redis;
 

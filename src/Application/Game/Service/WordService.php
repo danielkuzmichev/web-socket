@@ -3,13 +3,13 @@
 namespace App\Application\Game\Service;
 
 use App\Application\Game\Service\Scoring\SummaryService;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 
-class WordService
+class WordService implements WordServiceInterface
 {
     public function __construct(
-        private GameSessionRepositoryInterface $sessionRepository,
+        private SessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository,
         private SummaryService $summaryService
     ) {
@@ -47,5 +47,27 @@ class WordService
         }
 
         return $score;
+    }
+
+    public function checkLetters(string $checkedWord, string $targetWord): bool
+    {
+        $result = true;
+        $checkedLetters = mb_str_split(mb_strtolower($checkedWord));
+        $targetLetters = mb_str_split(mb_strtolower($targetWord));
+        
+        // Считаем количество каждой буквы в обоих словах
+        $checkedCounts = array_count_values($checkedLetters);
+        $targetCounts = array_count_values($targetLetters);
+
+        // Проверяем каждую букву
+        foreach ($checkedCounts as $letter => $count) {
+            // Если буквы нет в целевом слове или её недостаточно
+            if (!isset($targetCounts[$letter]) || $targetCounts[$letter] < $count) {
+                $result = false;
+                break;
+            }
+        }
+        
+        return $result;
     }
 }

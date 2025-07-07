@@ -2,7 +2,7 @@
 
 namespace App\Application\Session\Service;
 
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
 use App\Util\Exception\DomainLogicalException;
@@ -14,7 +14,7 @@ use DateTime;
 class SessionService implements SessionServiceInterface
 {
     public function __construct(
-        private GameSessionRepositoryInterface $gameSessionRepository,
+        private SessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository,
         private ConnectionStorage $connectionStorage
     ) {
@@ -22,16 +22,16 @@ class SessionService implements SessionServiceInterface
 
     public function createSession($player, $options): mixed
     {
-        if ($this->gameSessionRepository->findByConnection($player)) {
+        if ($this->sessionRepository->findByConnection($player)) {
             throw new DuplicateException('You already created or joined a session.');
         }
 
-        $sessionId = uniqid(more_entropy: true);
+        $sessionId = 1; // uniqid(more_entropy: true);
         if (!isset($payload['summary_type']) && $options['summary_type'] == null) {
             throw new InvalidDataException('Not found summary_type');
         }
 
-        $sessionWord = $this->wordRepository->getRandomSessionWord();
+        $sessionWord = 'приветствие';//$this->wordRepository->getRandomSessionWord();
 
         $session = [
             'sessionId' => $sessionId,
@@ -39,8 +39,8 @@ class SessionService implements SessionServiceInterface
             'sessionWord' => $sessionWord,
         ];
 
-        $this->gameSessionRepository->create($session);
-        $this->gameSessionRepository->add($sessionId, [$player]);
+        $this->sessionRepository->create($session);
+        $this->sessionRepository->add($sessionId, [$player]);
 
         // Добавляем соединение в ConnectionStorage
         $this->connectionStorage->add($sessionId, $player);
@@ -50,7 +50,7 @@ class SessionService implements SessionServiceInterface
 
     public function joinToSession($player, string $sessionId): void
     {
-        $session = $this->gameSessionRepository->find($sessionId);
+        $session = $this->sessionRepository->find($sessionId);
 
         if (!$session) {
             throw new NotFoundException('Session not found.');
@@ -60,12 +60,12 @@ class SessionService implements SessionServiceInterface
             throw new DomainLogicalException('Session is full.');
         }
 
-        if ($this->gameSessionRepository->findByConnection($player)) {
+        if ($this->sessionRepository->findByConnection($player)) {
             throw new DomainLogicalException('You already joined or created a session.');
         }
 
         // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
-        $this->gameSessionRepository->add($sessionId, [$player]);
+        $this->sessionRepository->add($sessionId, [$player]);
 
         // И в ConnectionStorage
         $this->connectionStorage->add($sessionId, $player);
@@ -73,7 +73,7 @@ class SessionService implements SessionServiceInterface
 
     public function setStart(string $sessionId, ?DateTime $time = null): array
     {
-        $session = $this->gameSessionRepository->find($sessionId);
+        $session = $this->sessionRepository->find($sessionId);
 
         if (!$session) {
             throw new NotFoundException('Session not found');
@@ -88,7 +88,7 @@ class SessionService implements SessionServiceInterface
             : microtime(true);
 
         $session['startAt'] = $startAt;
-        $this->gameSessionRepository->save($session);
+        $this->sessionRepository->save($session);
 
         return $session;
     }
@@ -105,6 +105,6 @@ class SessionService implements SessionServiceInterface
 
     public function delete(string $sessionId): void
     {
-        $this->gameSessionRepository->delete($sessionId);
+        $this->sessionRepository->delete($sessionId);
     }
 }

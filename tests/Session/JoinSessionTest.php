@@ -2,13 +2,13 @@
 
 namespace Tests\Session;
 
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
-use App\Infrastructure\Repository\GameSession\RedisGameSessionRepository;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\RedisGameSessionRepository;
 use Tests\BaseWebSocketTestCase;
 
 class JoinSessionTest extends BaseWebSocketTestCase
 {
-    private GameSessionRepositoryInterface $sessionRepository;
+    private SessionRepositoryInterface $sessionRepository;
 
     public function setUp(): void
     {

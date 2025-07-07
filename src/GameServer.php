@@ -4,7 +4,7 @@ namespace App;
 
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use Ratchet\ConnectionInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
 use App\Util\Exception\ReturnableException;
 use Ratchet\WebSocket\MessageComponentInterface;
@@ -13,16 +13,16 @@ class GameServer implements MessageComponentInterface
 {
     private MessageDispatcherInterface $dispatcher;
     private ConnectionStorage $connectionStorage;
-    private GameSessionRepositoryInterface $gameSessionRepository;
+    private SessionRepositoryInterface $sessionRepository;
 
     public function __construct(
         MessageDispatcherInterface $dispatcher,
         ConnectionStorage $connectionStorage,
-        GameSessionRepositoryInterface $gameSessionRepository
+        SessionRepositoryInterface $sessionRepository
     ) {
         $this->dispatcher = $dispatcher;
         $this->connectionStorage = $connectionStorage;
-        $this->gameSessionRepository = $gameSessionRepository;
+        $this->sessionRepository = $sessionRepository;
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -49,24 +49,34 @@ class GameServer implements MessageComponentInterface
         $this->connectionStorage->remove($conn);
 
         // 2. Удаляем соединение из GameSessionRepository
-        $sessionId = $this->gameSessionRepository->findByConnection($conn)['id'];
+        $sessionId = $this->sessionRepository->findByConnection($conn)['id'];
 
         if ($sessionId !== null) {
-            $this->gameSessionRepository->removeConnection($sessionId, $conn);
+            $this->sessionRepository->removeConnection($sessionId, $conn);
 
-            // (опционально) Уведомляем других игроков, что кто-то вышел
-            // $session = $this->gameSessionRepository->find($sessionId);
-            // if ($session) {
-            //     foreach ($session['players'] as $playerConn) {
-            //         $playerConn->send(json_encode([
-            //             'type' => 'player_left',
-            //             'payload' => [
-            //                 'message' => 'Other player left the session.',
-            //                 'sessionId' => $sessionId
-            //             ]
-            //         ]));
-            //     }
-            // }
+            // Уведомляем других игроков, что кто-то вышел
+            $sessionConns = $this->connectionStorage->getConnections($sessionId);
+            //$sessionConns = $this->sessionRepository->find($sessionId);
+            if (!empty($sessionConns)) {
+                foreach ($sessionConns as $playerConn) {
+                    $playerConn->send(json_encode([
+                        'type' => 'player_left',
+                        'payload' => [
+                            'message' => 'Other player left the session.',
+                            'sessionId' => $sessionId,
+                            'departedPlayer' => $conn->id,
+                        ]
+                    ]));
+                }
+            }
+            // $this->dispatcher->dispatchFromArray([
+            //     'type' => 'player_left',
+            //     'payload' => [
+            //         'message' => 'Other player left the session.',
+            //         'sessionId' => $sessionId,
+            //         'departedPlayer' => $conn->id,
+            //     ]
+            // ]);
         }
     }
 

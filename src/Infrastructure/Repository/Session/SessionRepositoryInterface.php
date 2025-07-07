@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Infrastructure\Repository\GameSession;
+namespace App\Infrastructure\Repository\Session;
 
 use Ratchet\ConnectionInterface;
 
-interface GameSessionRepositoryInterface
+interface SessionRepositoryInterface
 {
     public function create(mixed $session): void;
 

@@ -2,9 +2,9 @@
 
 namespace App\Application\Game\Handler;
 
-use App\Application\Game\Service\WordService;
+use App\Application\Game\Service\WordServiceInterface;
 use App\Core\Handler\MessageHandlerInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
@@ -12,8 +12,8 @@ use Ratchet\ConnectionInterface;
 class SendWordHandler implements MessageHandlerInterface
 {
     public function __construct(
-        private GameSessionRepositoryInterface $sessionRepository,
-        private WordService $wordService
+        private SessionRepositoryInterface $sessionRepository,
+        private WordServiceInterface $wordService
     ) {
     }
 
@@ -33,6 +33,17 @@ class SendWordHandler implements MessageHandlerInterface
 
         if ($session['startAt'] >= microtime(true)) {
             throw new DomainLogicalException('You cannot send word early');
+        }
+
+        if(!$this->wordService->checkLetters($word, $session['sessionWord'])) {
+            $conn->send(json_encode([
+                'type' => 'word_result',
+                'payload' => [
+                    'message' => 'The letter is missing from the target word',
+                ]
+            ]));
+
+            return;
         }
 
         $result = $this->wordService->score($word, $conn->resourceId, $session);

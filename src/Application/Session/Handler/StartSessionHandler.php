@@ -6,7 +6,7 @@ use App\Application\Session\Service\SessionServiceInterface;
 use App\Application\Session\Service\TimerService;
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use App\Core\Handler\MessageHandlerInterface;
-use App\Infrastructure\Repository\GameSession\GameSessionRepositoryInterface;
+use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Loop;
@@ -14,7 +14,7 @@ use React\EventLoop\Loop;
 class StartSessionHandler implements MessageHandlerInterface
 {
     public function __construct(
-        private GameSessionRepositoryInterface $gameSessionRepository,
+        private SessionRepositoryInterface $sessionRepository,
         private MessageDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
         private SessionServiceInterface $sessionService,
