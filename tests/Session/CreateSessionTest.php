@@ -3,7 +3,7 @@
 namespace Tests\Session;
 
 use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
-use App\Infrastructure\Repository\Session\RedisGameSessionRepository;
+use App\Infrastructure\Repository\Session\RedisSessionRepository;
 use Tests\BaseWebSocketTestCase;
 use Tests\WebSocketClientDecorator;
 
@@ -15,7 +15,7 @@ class CreateSessionTest extends BaseWebSocketTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->sessionRepository = $this->getFromContainer(RedisGameSessionRepository::class);
+        $this->sessionRepository = $this->getFromContainer(RedisSessionRepository::class);
         $this->client = $this->getClient();
     }
 
