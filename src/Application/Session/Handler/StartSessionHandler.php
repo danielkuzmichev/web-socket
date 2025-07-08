@@ -34,7 +34,7 @@ class StartSessionHandler implements MessageHandlerInterface
         $delay = max(0, $startAt - microtime(true));
 
         // Отправляем обратный отсчёт всем игрокам
-        $this->broadcastToSession($payload['sessionId'], [
+        $this->connectionStorage->broadcastToSession($payload['sessionId'], [
             'type' => 'countdown',
             'payload' => [
                 'startAt' => $startAt,
@@ -53,7 +53,7 @@ class StartSessionHandler implements MessageHandlerInterface
     {
         $matchDuration = 15; // Длительность матча
         // Уведомляем всех, что матч начался
-        $this->broadcastToSession($sessionId, [
+        $this->connectionStorage->broadcastToSession($sessionId, [
             'type' => 'match_started',
             'payload' => ['duration' => $matchDuration]
         ]);
@@ -68,7 +68,7 @@ class StartSessionHandler implements MessageHandlerInterface
     private function endMatch(string $sessionId): void
     {
         // Уведомляем всех, что матч завершён
-        $this->broadcastToSession($sessionId, [
+        $this->connectionStorage->broadcastToSession($sessionId, [
             'type' => 'match_ended',
             'payload' => ['message' => 'Match ended!']
         ]);
@@ -82,18 +82,10 @@ class StartSessionHandler implements MessageHandlerInterface
         // Удаляем сессию после небольшой задержки (чтобы клиенты успели получить результаты)
         Loop::get()->addTimer(2, function () use ($sessionId) {
             $this->sessionService->delete($sessionId);
-            $this->broadcastToSession($sessionId, [
+            $this->connectionStorage->broadcastToSession($sessionId, [
                 'type' => 'session_is_deleted',
                 'payload' => ['message' => 'Session is deleted']
             ]);
         });
-    }
-
-    private function broadcastToSession(string $sessionId, array $message): void
-    {
-        $connections = $this->connectionStorage->getConnections($sessionId);
-        foreach ($connections as $conn) {
-            $conn->send(json_encode($message));
-        }
     }
 }

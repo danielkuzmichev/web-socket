@@ -54,7 +54,7 @@ class WordService implements WordServiceInterface
         $result = true;
         $checkedLetters = mb_str_split(mb_strtolower($checkedWord));
         $targetLetters = mb_str_split(mb_strtolower($targetWord));
-        
+
         // Считаем количество каждой буквы в обоих словах
         $checkedCounts = array_count_values($checkedLetters);
         $targetCounts = array_count_values($targetLetters);
@@ -67,7 +67,7 @@ class WordService implements WordServiceInterface
                 break;
             }
         }
-        
+
         return $result;
     }
 }

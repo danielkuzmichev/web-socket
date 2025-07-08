@@ -35,7 +35,7 @@ class SendWordHandler implements MessageHandlerInterface
             throw new DomainLogicalException('You cannot send word early');
         }
 
-        if(!$this->wordService->checkLetters($word, $session['sessionWord'])) {
+        if (!$this->wordService->checkLetters($word, $session['sessionWord'])) {
             $conn->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [

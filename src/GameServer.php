@@ -57,26 +57,20 @@ class GameServer implements MessageComponentInterface
             // Уведомляем других игроков, что кто-то вышел
             $sessionConns = $this->connectionStorage->getConnections($sessionId);
             //$sessionConns = $this->sessionRepository->find($sessionId);
+            $event = [
+                'type' => 'player_left',
+                'payload' => [
+                    'message' => 'Other player left the session.',
+                    'sessionId' => $sessionId,
+                    'departedPlayer' => $conn->resourceId,
+                ]
+            ];
             if (!empty($sessionConns)) {
                 foreach ($sessionConns as $playerConn) {
-                    $playerConn->send(json_encode([
-                        'type' => 'player_left',
-                        'payload' => [
-                            'message' => 'Other player left the session.',
-                            'sessionId' => $sessionId,
-                            'departedPlayer' => $conn->id,
-                        ]
-                    ]));
+                    $playerConn->send(json_encode($event));
                 }
             }
-            // $this->dispatcher->dispatchFromArray([
-            //     'type' => 'player_left',
-            //     'payload' => [
-            //         'message' => 'Other player left the session.',
-            //         'sessionId' => $sessionId,
-            //         'departedPlayer' => $conn->id,
-            //     ]
-            // ]);
+            $this->dispatcher->dispatchFromArray($event);
         }
     }
 

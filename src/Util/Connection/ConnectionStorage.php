@@ -30,4 +30,12 @@ class ConnectionStorage
     {
         return $this->connections[$sessionId] ?? [];
     }
+
+    public function broadcastToSession(string $sessionId, array $message): void
+    {
+        $connections = $this->getConnections($sessionId);
+        foreach ($connections as $conn) {
+            $conn->send(json_encode($message));
+        }
+    }
 }
