@@ -60,19 +60,22 @@ class JoinSessionTest extends BaseWebSocketTestCase
             ]
         ];
 
-        // $expectedJoinResponse = [
-        //     'type' => 'countdown',
-        //     'payload' => [
-        //         'startAt',
-        //         'remainingSeconds',
-        //     ]
-        // ];
 
         $this->assertArrayStructure($joinResponse[0], $expectedJoinResponse);
 
         // 3. Проверяем, что сессия обновилась в репозитории
         $updatedSession = $this->sessionRepository->find($sessionId);
         $this->assertCount(2, $updatedSession['players']);
+
+        $expectedJoinResponse1 = [
+            'type' => 'countdown',
+            'payload' => [
+                'startAt',
+                'remainingSeconds',
+            ]
+        ];
+
+        $this->assertArrayStructure($joinResponse[1], $expectedJoinResponse1);
     }
 
     public function testJoinNonExistingSession()

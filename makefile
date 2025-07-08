@@ -43,3 +43,7 @@ cs-check:
 
 test:
 	docker compose exec $(APP_CONTAINER) ./vendor/bin/phpunit tests
+
+# Статический анализ
+psalm:
+	docker compose exec $(APP_CONTAINER) ./vendor/bin/psalm

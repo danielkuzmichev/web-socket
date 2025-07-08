@@ -2,6 +2,7 @@
 
 namespace App\Application\Session\Service;
 
+use App\Application\Game\Enum\GameType;
 use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
 use App\Infrastructure\Repository\Word\WordRepositoryInterface;
 use App\Util\Connection\ConnectionStorage;
@@ -26,12 +27,16 @@ class SessionService implements SessionServiceInterface
             throw new DuplicateException('You already created or joined a session.');
         }
 
-        $sessionId = 1; // uniqid(more_entropy: true);
-        if (!isset($payload['summary_type']) && $options['summary_type'] == null) {
+        $sessionId = uniqid(more_entropy: true);
+        if (!isset($options['summary_type']) && $options['summary_type'] == null) {
             throw new InvalidDataException('Not found summary_type');
         }
 
-        $sessionWord = 'приветствие';//$this->wordRepository->getRandomSessionWord();
+        if (GameType::tryFrom($options['summary_type']) !== null) {
+            throw new InvalidDataException('Not such summary_type');
+        }
+
+        $sessionWord = $this->wordRepository->getRandomSessionWord();
 
         $session = [
             'sessionId' => $sessionId,

@@ -2,6 +2,7 @@
 
 namespace App\Application\Game\Service\Scoring;
 
+use App\Application\Game\Enum\GameType;
 use App\Application\Game\Service\Scoring\Strategy\UniqueWordsByLengthStrategy;
 
 class SummaryService
@@ -12,7 +13,7 @@ class SummaryService
         $summaryType = $session['summary_type'];
 
         $result = match($summaryType) {
-            'unique_words_by_length' => UniqueWordsByLengthStrategy::calculate($players),
+            GameType::UNIQUE_WORDS_BY_LENGTH => UniqueWordsByLengthStrategy::calculate($players),
             default => UniqueWordsByLengthStrategy::calculate($players)
         };
 
