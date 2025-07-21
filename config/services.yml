@@ -10,19 +10,19 @@ services:
             - '../src/Tests/'
             - '../src/*/Entity'
 
-    App\Application\Session\Service\TimerService:
+    App\Domain\Session\Service\TimerService:
         tags:
             - { name: 'app.service' }
 
-    App\Util\Redis\RedisClient:
+    App\Infrastructure\Redis\RedisClient:
         calls:
             - method: connect
               arguments:
                 - 'redis'
                 - 6379
 
-    App\Application\:
-        resource: '../src/Application/*/Handler/*'
+    App\Domain\:
+        resource: '../src/Domain/*/Handler/*'
         tags: ['app.message_handler']
 
     App\Core\Dispatcher\MessageDispatcher:
@@ -32,13 +32,15 @@ services:
               arguments:
                 - !tagged_iterator app.message_handler
 
-    App\Util\Connection\ConnectionStorage: ~
+    App\Infrastructure\Connection\ConnectionStorageInterface: '@App\Infrastructure\Connection\ConnectionStorage'
 
-    App\Infrastructure\Repository\Session\SessionRepositoryInterface: '@App\Infrastructure\Repository\Session\RedisSessionRepository'
+    App\Domain\Repository\Session\SessionRepositoryInterface: '@App\Infrastructure\Repository\Redis\Session\RedisSessionRepository'
 
-    App\Application\Session\Service\SessionServiceInterface: '@App\Application\Session\Service\SessionService'
+    App\Domain\Repository\Game\RedisWordRepositoryInterface: '@App\Infrastructure\Repository\Redis\Game\RedisWordRepository'
+
+    App\Domain\Session\Service\SessionServiceInterface: '@App\Domain\Session\Service\SessionService'
 
     App\GameServer:
         arguments:
             $dispatcher: '@App\Core\Dispatcher\MessageDispatcher'
-            $connectionStorage: '@App\Util\Connection\ConnectionStorage'
+            $connectionStorage: '@App\Infrastructure\Connection\ConnectionStorage'

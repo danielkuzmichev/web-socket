@@ -4,8 +4,8 @@ namespace App;
 
 use App\Core\Dispatcher\MessageDispatcherInterface;
 use Ratchet\ConnectionInterface;
-use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
-use App\Util\Connection\ConnectionStorage;
+use App\Domain\Session\Repository\SessionRepositoryInterface;
+use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\ReturnableException;
 use Ratchet\WebSocket\MessageComponentInterface;
 

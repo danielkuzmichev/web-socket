@@ -2,8 +2,8 @@
 
 namespace Tests\Session;
 
-use App\Infrastructure\Repository\Session\SessionRepositoryInterface;
-use App\Infrastructure\Repository\Session\RedisSessionRepository;
+use App\Domain\Session\Repository\SessionRepositoryInterface;
+use App\Infrastructure\Repository\Redis\Session\RedisSessionRepository;
 use Tests\BaseWebSocketTestCase;
 use Tests\WebSocketClientDecorator;
 
