@@ -22,31 +22,35 @@ class WordService implements WordServiceInterface
 
     public function score(string $word, mixed $playerId, mixed $session): mixed
     {
-        $score = [];
         $wordExists = $this->check($word);
+        $scoreWord = 0;
+        $message = 'not_found_word';
 
         if ($wordExists) {
-            $score = mb_strlen($word);
-
             $player = &$session['players'][$playerId];
 
             if (!in_array($word, $player['words'], true)) {
+                $scoreWord = mb_strlen($word);
                 $player['words'][] = $word;
+                $message = 'found_word';
                 if (isset($player['score'])) {
-                    $player['score'] = $player['score'] + $score;
+                    $player['score'] = $player['score'] + $scoreWord;
                 } else {
-                    $player['score'] = $score;
+                    $player['score'] = $scoreWord;
                 }
+            } else {
+                $message = 'repeated_word';
             }
 
             $session['players'][$playerId] = $player;
 
             $this->sessionRepository->save($session);
-
-            $score = ['score' => $score];
         }
 
-        return $score;
+        return  [
+            'score' => $scoreWord,
+            'message' => $message,
+        ];
     }
 
     public function checkLetters(string $checkedWord, string $targetWord): bool

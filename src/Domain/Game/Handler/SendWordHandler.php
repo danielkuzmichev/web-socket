@@ -52,7 +52,7 @@ class SendWordHandler implements MessageHandlerInterface
             $conn->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
-                    'message' => 'found_word',
+                    'message' => $result['message'],
                     'score' => $result['score'],
                     'total' => $session['players'][$conn->resourceId]['score'] + $result['score']
                 ]
@@ -61,7 +61,7 @@ class SendWordHandler implements MessageHandlerInterface
             $conn->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
-                    'message' => 'not_found_word',
+                    'message' => $result['message'],
                 ]
             ]));
         }

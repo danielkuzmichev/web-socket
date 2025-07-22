@@ -34,6 +34,8 @@ $redis = new Client([
     'port' => 6379,
 ]);
 
+$redis->select(1);
+
 $file = __DIR__ . '/../data/russian_nouns.txt';
 
 // Считаем общее количество строк для прогресса

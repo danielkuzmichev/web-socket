@@ -4,11 +4,13 @@ namespace App\Infrastructure\Repository\Redis\Game;
 
 use App\Domain\Game\Repository\WordRepositoryInterface;
 use App\Infrastructure\Redis\RedisClient;
+use App\Infrastructure\Repository\Redis\RedisRepository;
 
-class RedisWordRepository implements WordRepositoryInterface
+class RedisWordRepository extends RedisRepository implements WordRepositoryInterface
 {
-    public function __construct(private RedisClient $redis)
+    public function __construct(private RedisClient $redis, int $dbIndex = 0)
     {
+        parent::__construct($redis, $dbIndex);
     }
 
     public function exists(string $word): bool

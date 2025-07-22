@@ -10,16 +10,36 @@ services:
             - '../src/Tests/'
             - '../src/*/Entity'
 
-    App\Domain\Session\Service\TimerService:
-        tags:
-            - { name: 'app.service' }
-
-    App\Infrastructure\Redis\RedisClient:
+    redis.default:
+        class: App\Infrastructure\Redis\RedisClient
         calls:
             - method: connect
               arguments:
                 - 'redis'
                 - 6379
+                - 0
+
+    redis.word_repository:
+        class: App\Infrastructure\Redis\RedisClient
+        calls:
+            - method: connect
+              arguments:
+                - 'redis'
+                - 6379
+                - 1
+
+    App\Infrastructure\Repository\Redis\Session\RedisSessionRepository:
+        arguments:
+            $redis: '@redis.default'
+
+    App\Infrastructure\Repository\Redis\Game\RedisWordRepository:
+        arguments:
+            $redis: '@redis.word_repository'
+            $dbIndex: 1
+
+    App\Domain\Session\Service\TimerService:
+        tags:
+            - { name: 'app.service' }
 
     App\Domain\:
         resource: '../src/Domain/*/Handler/*'

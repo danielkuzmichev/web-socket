@@ -6,14 +6,23 @@ class RedisClient implements RedisClientInterface
 {
     private \Redis $redis;
 
+    private int $selectedDb = 0;
+
     public function __construct()
     {
         $this->redis = new \Redis();
     }
 
-    public function connect(string $host, int $port): void
+    public function connect(string $host, int $port, int $dbIndex = 0): void
     {
         $this->redis->connect($host, $port);
+        $this->selectDb($dbIndex);
+    }
+
+    public function selectDb(int $dbIndex): void
+    {
+        $this->redis->select($dbIndex);
+        $this->selectedDb = $dbIndex;
     }
 
     public function get(string $key)
@@ -21,9 +30,11 @@ class RedisClient implements RedisClientInterface
         return $this->redis->get($key);
     }
 
-    public function set(string $key, string $value)
+    public function set(string $key, string $value, ?int $ttl = null): bool
     {
-        return $this->redis->set($key, $value);
+        return $ttl
+            ? $this->redis->setex($key, $ttl, $value)
+            : $this->redis->set($key, $value);
     }
 
     public function del(string $key): int
