@@ -4,12 +4,12 @@ namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Domain\Session\Service\TimerService;
-use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Handler\EventHandlerInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class FinishSessionHandler implements MessageHandlerInterface
+class FinishSessionHandler implements EventHandlerInterface
 {
     public function __construct(
         private SessionServiceInterface $sessionService,

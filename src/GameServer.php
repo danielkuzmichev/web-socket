@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Core\Dispatcher\MessageDispatcherInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use Ratchet\ConnectionInterface;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
@@ -11,12 +11,12 @@ use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
 {
-    private MessageDispatcherInterface $dispatcher;
+    private WebSocketDispatcherInterface $dispatcher;
     private ConnectionStorage $connectionStorage;
     private SessionRepositoryInterface $sessionRepository;
 
     public function __construct(
-        MessageDispatcherInterface $dispatcher,
+        WebSocketDispatcherInterface $dispatcher,
         ConnectionStorage $connectionStorage,
         SessionRepositoryInterface $sessionRepository
     ) {

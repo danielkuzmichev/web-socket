@@ -3,13 +3,13 @@
 namespace App\Domain\Game\Handler;
 
 use App\Domain\Game\Service\Scoring\SummaryService;
-use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Handler\EventHandlerInterface;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class SummaryResultHandler implements MessageHandlerInterface
+class SummaryResultHandler implements EventHandlerInterface
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,

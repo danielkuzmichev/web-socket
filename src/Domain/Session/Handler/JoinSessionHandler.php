@@ -3,18 +3,18 @@
 namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
-use App\Core\Handler\MessageHandlerInterface;
-use App\Core\Dispatcher\MessageDispatcherInterface;
+use App\Core\Handler\EventHandlerInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class JoinSessionHandler implements MessageHandlerInterface
+class JoinSessionHandler implements EventHandlerInterface
 {
     public function __construct(
         private SessionServiceInterface $sessionService,
         private SessionRepositoryInterface $sessionRepository,
-        private ?MessageDispatcherInterface $dispatcher,
+        private ?WebSocketDispatcherInterface $dispatcher,
     ) {
     }
 

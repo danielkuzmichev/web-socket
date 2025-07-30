@@ -2,17 +2,18 @@
 
 namespace App\Domain\Game\Handler;
 
-use App\Core\Dispatcher\MessageDispatcherInterface;
-use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
+use App\Core\Handler\EventHandlerInterface;
+use App\Domain\Game\Event\PlayerLeft;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
-class PlayerLeftHandler implements MessageHandlerInterface
+class PlayerLeftHandler implements EventHandlerInterface
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
-        private MessageDispatcherInterface $dispatcher
+        private WebSocketDispatcherInterface $dispatcher
     ) {
     }
 
@@ -21,7 +22,7 @@ class PlayerLeftHandler implements MessageHandlerInterface
         return 'player_left';
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function handle(PlayerLeft $payload, ?ConnectionInterface $conn = null): void
     {
         $sessionId = $payload['sessionId'];
         $playerId = $payload['departedPlayer'];

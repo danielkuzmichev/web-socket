@@ -3,10 +3,10 @@
 namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
-use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Handler\EventHandlerInterface;
 use Ratchet\ConnectionInterface;
 
-class CreateSessionHandler implements MessageHandlerInterface
+class CreateSessionHandler implements EventHandlerInterface
 {
     public function __construct(private SessionServiceInterface $sessionService)
     {

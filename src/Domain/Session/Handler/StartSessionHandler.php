@@ -4,18 +4,18 @@ namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Domain\Session\Service\TimerService;
-use App\Core\Dispatcher\MessageDispatcherInterface;
-use App\Core\Handler\MessageHandlerInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
+use App\Core\Handler\EventHandlerInterface;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Loop;
 
-class StartSessionHandler implements MessageHandlerInterface
+class StartSessionHandler implements EventHandlerInterface
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
-        private MessageDispatcherInterface $dispatcher,
+        private WebSocketDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
         private SessionServiceInterface $sessionService,
         private TimerService $timerService
