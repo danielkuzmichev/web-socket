@@ -2,14 +2,17 @@
 
 namespace App\Domain\Game\Handler;
 
+use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Game\Service\WordServiceInterface;
 use App\Core\Handler\EventHandlerInterface;
+use App\Domain\Game\Event\SendWord;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
-class SendWordHandler implements EventHandlerInterface
+class SendWordHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
@@ -17,14 +20,15 @@ class SendWordHandler implements EventHandlerInterface
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'send_word';
+        return SendWord::class;
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $word = $payload['word'];
+        /** @var SendWord $event*/
+        $word = $event->getWord();
 
         $session = $this->sessionRepository->findByConnection($conn);
         if ($session === null) {

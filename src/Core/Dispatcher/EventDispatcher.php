@@ -3,29 +3,29 @@
 namespace App\Core\Dispatcher;
 
 use App\Core\Event\EventInterface;
+use App\Core\Handler\EventHandlerInterface;
 use Ratchet\ConnectionInterface;
 
 class EventDispatcher
 {
     /**
-     * @var array<string, object[]>  // eventClass => [handlers]
+     * @var array<class-string<EventInterface>, EventHandlerInterface[]>
      */
     private array $handlers = [];
 
     /**
      * @var array<string, class-string<EventInterface>>
-     * Маппинг типа из массива в класс события
      */
     private array $eventClassMap = [];
 
     /**
-     * @param iterable<object> $handlers
+     * @param iterable<EventHandlerInterface> $handlers
      * @param array<string, class-string<EventInterface>> $eventClassMap
      */
     public function __construct(iterable $handlers = [], array $eventClassMap = [])
     {
-        $this->setHandlers($handlers);
         $this->eventClassMap = $eventClassMap;
+        $this->setHandlers($handlers);
     }
 
     public function setHandlers(iterable $handlers): void
@@ -35,39 +35,27 @@ class EventDispatcher
         }
     }
 
-    public function registerHandler(object $handler): void
+    public function registerHandler(EventHandlerInterface $handler): void
     {
-        $refClass = new \ReflectionClass($handler);
+        if (method_exists($handler, 'getEventClass')) {
+            $eventClasses = $handler->getEventClass();
 
-        foreach ($refClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            $params = $method->getParameters();
-
-            if (count($params) === 0) {
-                continue;
+            if (!is_array($eventClasses)) {
+                $eventClasses = [$eventClasses];
             }
 
-            $paramType = $params[0]->getType();
+            foreach ($eventClasses as $eventClass) {
+                if (!is_subclass_of($eventClass, EventInterface::class)) {
+                    throw new \InvalidArgumentException("Invalid event class: {$eventClass}");
+                }
 
-            if (!$paramType || $paramType->isBuiltin()) {
-                continue;
+                $this->handlers[$eventClass][] = $handler;
             }
-
-            $eventClass = $paramType->getName();
-
-            if (!is_subclass_of($eventClass, EventInterface::class)) {
-                continue;
-            }
-
-            $this->handlers[$eventClass][] = [$handler, $method->getName()];
+        } else {
+            throw new \LogicException("Handler must implement getEventClass()");
         }
     }
 
-    /**
-     * Преобразует массив с type/payload в объект-событие и диспатчит его
-     *
-     * @param array $message ['type' => string, 'payload' => array]
-     * @param ConnectionInterface|null $conn
-     */
     public function dispatchFromArray(array $message, ?ConnectionInterface $conn = null): void
     {
         if (!isset($message['type'])) {
@@ -78,17 +66,9 @@ class EventDispatcher
         $payload = $message['payload'] ?? [];
 
         $event = $this->createEvent($type, $payload);
-
         $this->dispatch($event, $conn);
     }
 
-    /**
-     * Создаёт объект-событие по имени типа и данным
-     *
-     * @param string $type
-     * @param array $payload
-     * @return EventInterface
-     */
     protected function createEvent(string $type, array $payload): EventInterface
     {
         if (!isset($this->eventClassMap[$type])) {
@@ -97,16 +77,9 @@ class EventDispatcher
 
         $eventClass = $this->eventClassMap[$type];
 
-        // Предположим, что событие принимает данные в конструктор как именованные параметры
         return new $eventClass(...$payload);
     }
 
-    /**
-     * Вызывает у зарегистрированных хендлеров методы с событием
-     *
-     * @param EventInterface $event
-     * @param ConnectionInterface|null $conn
-     */
     public function dispatch(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
         $eventClass = get_class($event);
@@ -115,9 +88,8 @@ class EventDispatcher
             throw new \RuntimeException("No handlers registered for event: {$eventClass}");
         }
 
-        foreach ($this->handlers[$eventClass] as [$handler, $method]) {
-            // Если у тебя есть логика передачи $conn — можно добавить в параметры
-            $handler->$method($event);
+        foreach ($this->handlers[$eventClass] as $handler) {
+            $handler->handle($event, $conn);
         }
     }
 }

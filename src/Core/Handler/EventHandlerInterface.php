@@ -7,5 +7,7 @@ use Ratchet\ConnectionInterface;
 
 interface EventHandlerInterface
 {
-    public function handle(EventInterface $payload, ?ConnectionInterface $conn = null): void;
+    public function handle(EventInterface $event, ?ConnectionInterface $conn = null): void;
+
+    public function getEventClass(): string;
 }

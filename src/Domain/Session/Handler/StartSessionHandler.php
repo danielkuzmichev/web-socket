@@ -5,13 +5,15 @@ namespace App\Domain\Session\Handler;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Domain\Session\Service\TimerService;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
-use App\Core\Handler\EventHandlerInterface;
+use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\Loop;
 
-class StartSessionHandler implements EventHandlerInterface
+class StartSessionHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
@@ -22,19 +24,20 @@ class StartSessionHandler implements EventHandlerInterface
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'start_session';
+        return StartSession::class;
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $session = $this->sessionService->setStart($payload['sessionId']);
+        /** @var StartSession $event */
+        $session = $this->sessionService->setStart($event->getSessionId());
         $startAt = $session['startAt'] + 5;
         $delay = max(0, $startAt - microtime(true));
 
         // Отправляем обратный отсчёт всем игрокам
-        $this->connectionStorage->broadcastToSession($payload['sessionId'], [
+        $this->connectionStorage->broadcastToSession($event->getSessionId(), [
             'type' => 'countdown',
             'payload' => [
                 'startAt' => $startAt,

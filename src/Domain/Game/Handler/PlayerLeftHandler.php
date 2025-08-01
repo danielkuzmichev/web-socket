@@ -2,14 +2,14 @@
 
 namespace App\Domain\Game\Handler;
 
-use App\Core\Dispatcher\WebSocketDispatcherInterface;
-use App\Core\Handler\EventHandlerInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Game\Event\PlayerLeft;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
-class PlayerLeftHandler implements EventHandlerInterface
+class PlayerLeftHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
@@ -17,15 +17,16 @@ class PlayerLeftHandler implements EventHandlerInterface
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'player_left';
+        return PlayerLeft::class;
     }
 
-    public function handle(PlayerLeft $payload, ?ConnectionInterface $conn = null): void
+    protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $sessionId = $payload['sessionId'];
-        $playerId = $payload['departedPlayer'];
+        /** @var PlayerLeft $event */
+        $sessionId = $event->getSessionId();
+        $playerId = $event->getPlayerId();
         $session = $this->sessionRepository->find($sessionId);
 
         if ($session === null) {

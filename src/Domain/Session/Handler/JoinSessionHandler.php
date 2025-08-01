@@ -5,11 +5,14 @@ namespace App\Domain\Session\Handler;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Core\Handler\EventHandlerInterface;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
+use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Session\Event\JoinSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class JoinSessionHandler implements EventHandlerInterface
+class JoinSessionHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionServiceInterface $sessionService,
@@ -18,14 +21,15 @@ class JoinSessionHandler implements EventHandlerInterface
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'join_session';
+        return JoinSession::class;
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $sessionId = $payload['sessionId'] ?? null;
+        /** @var JoinSession $event */
+        $sessionId = $event->getSessionId() ?? null;
 
         if (!$sessionId) {
             throw new InvalidDataException('Missing session ID.');
