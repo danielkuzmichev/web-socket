@@ -39,8 +39,7 @@ class CreateSessionTest extends BaseWebSocketTestCase
         $message = [
             'type' => 'create_session',
             'payload' => [
-                'summary_type' => 'unique_words_by_length',
-                'player' => 'Danil'
+                'summaryType' => 'unique_words_by_length',
             ]
         ];
 

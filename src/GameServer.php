@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
+use App\Domain\Game\Event\PlayerLeft;
 use Ratchet\ConnectionInterface;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
@@ -56,21 +57,22 @@ class GameServer implements MessageComponentInterface
 
             // Уведомляем других игроков, что кто-то вышел
             $sessionConns = $this->connectionStorage->getConnections($sessionId);
-            //$sessionConns = $this->sessionRepository->find($sessionId);
-            $event = [
-                'type' => 'player_left',
-                'payload' => [
-                    'message' => 'Other player left the session.',
-                    'sessionId' => $sessionId,
-                    'departedPlayer' => $conn->resourceId,
-                ]
-            ];
+
+            $event = new PlayerLeft($sessionId, $conn->resourceId);
+
             if (!empty($sessionConns)) {
                 foreach ($sessionConns as $playerConn) {
-                    $playerConn->send(json_encode($event));
+                    $playerConn->send(json_encode([
+                        'type' => 'player_left',
+                        'payload' => [
+                            'message' => 'Other player left the session.',
+                            'sessionId' => $sessionId,
+                            'departedPlayer' => $conn->resourceId,
+                        ]
+                    ]));
                 }
             }
-            $this->dispatcher->dispatchFromArray($event);
+            $this->dispatcher->dispatch($event);
         }
     }
 

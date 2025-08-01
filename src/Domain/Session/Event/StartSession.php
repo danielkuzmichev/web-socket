@@ -2,9 +2,11 @@
 
 namespace App\Domain\Session\Event;
 
-use App\Core\Entity\EntityInterface;
+use App\Core\Attribute\Event;
+use App\Core\Event\EventInterface;
 
-class StartSession implements EntityInterface
+#[Event('start_session')]
+class StartSession implements EventInterface
 {
     public function __construct(private string $sessionId)
     {

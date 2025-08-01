@@ -23,8 +23,7 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $createResponse = $creatorClient->sendWebSocketMessage([
             'type' => 'create_session',
             'payload' => [
-                'summary_type' => 'unique_words_by_length',
-                'player' => 'Danil'
+                'summaryType' => 'unique_words_by_length',
             ]
         ]);
 
@@ -44,7 +43,6 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $joinResponse = $joinerClient->sendWebSocketMessage([
             'type' => 'join_session',
             'payload' => [
-                'player' => 'Sinem',
                 'sessionId' => $sessionId
             ]
         ]);
@@ -84,7 +82,6 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $client->sendWebSocketMessage([
             'type' => 'join_session',
             'payload' => [
-                'player' => 'Sinem',
                 'sessionId' => 'non_existing_id'
             ]
         ]);

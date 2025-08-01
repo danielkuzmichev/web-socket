@@ -6,7 +6,7 @@ use App\Core\Event\EventInterface;
 use App\Core\Handler\EventHandlerInterface;
 use Ratchet\ConnectionInterface;
 
-class EventDispatcher
+class EventDispatcher implements WebSocketDispatcherInterface
 {
     /**
      * @var array<class-string<EventInterface>, EventHandlerInterface[]>
@@ -71,6 +71,7 @@ class EventDispatcher
 
     protected function createEvent(string $type, array $payload): EventInterface
     {
+        var_dump($this->eventClassMap);
         if (!isset($this->eventClassMap[$type])) {
             throw new \InvalidArgumentException("Unknown event type '{$type}'");
         }

@@ -8,6 +8,7 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Session\Event\JoinSession;
+use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
@@ -55,11 +56,6 @@ class JoinSessionHandler extends AbstractEventHandler
 
     private function startCountdown(string $sessionId): void
     {
-        $this->dispatcher->dispatchFromArray([
-            'type' => 'start_session',
-            'payload' => [
-                'sessionId' => $sessionId
-            ]
-        ]);
+        $this->dispatcher->dispatch(new StartSession($sessionId));
     }
 }

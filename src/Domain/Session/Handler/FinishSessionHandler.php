@@ -21,7 +21,7 @@ class FinishSessionHandler extends AbstractEventHandler
     ) {
     }
 
-    
+
     public function getEventClass(): string
     {
         return FinishSession::class;

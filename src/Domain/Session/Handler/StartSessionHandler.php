@@ -7,6 +7,7 @@ use App\Domain\Session\Service\TimerService;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Game\Event\SummaryResult;
 use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
@@ -77,10 +78,7 @@ class StartSessionHandler extends AbstractEventHandler
         ]);
 
         // Отправляем запрос на подсчёт результатов
-        $this->dispatcher->dispatchFromArray([
-            'type' => 'summarize_results',
-            'payload' => ['sessionId' => $sessionId]
-        ]);
+        $this->dispatcher->dispatch(new SummaryResult($sessionId));
 
         // Удаляем сессию после небольшой задержки (чтобы клиенты успели получить результаты)
         Loop::get()->addTimer(2, function () use ($sessionId) {

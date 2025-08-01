@@ -21,4 +21,3 @@ abstract class AbstractEventHandler implements EventHandlerInterface
 
     abstract protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void;
 }
-

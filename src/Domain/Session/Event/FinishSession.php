@@ -2,9 +2,11 @@
 
 namespace App\Domain\Session\Event;
 
-use App\Core\Entity\EntityInterface;
+use App\Core\Attribute\Event;
+use App\Core\Event\EventInterface;
 
-class FinishSession implements EntityInterface
+#[Event('finish_session')]
+class FinishSession implements EventInterface
 {
     public function __construct(private string $sessionId)
     {

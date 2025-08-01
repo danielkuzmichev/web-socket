@@ -2,8 +2,10 @@
 
 namespace App\Domain\Game\Event;
 
+use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
+#[Event('player_left')]
 class PlayerLeft implements EventInterface
 {
     public function __construct(

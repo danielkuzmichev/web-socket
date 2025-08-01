@@ -2,4 +2,6 @@
 
 namespace App\Core\Event;
 
-interface EventInterface {}
+interface EventInterface
+{
+}
