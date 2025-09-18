@@ -3,14 +3,12 @@
 namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
-use App\Core\Handler\EventHandlerInterface;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Session\Event\JoinSession;
 use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
 class JoinSessionHandler extends AbstractEventHandler
@@ -31,10 +29,6 @@ class JoinSessionHandler extends AbstractEventHandler
     {
         /** @var JoinSession $event */
         $sessionId = $event->getSessionId() ?? null;
-
-        if (!$sessionId) {
-            throw new InvalidDataException('Missing session ID.');
-        }
 
         $this->sessionService->joinToSession($conn, $sessionId);
 

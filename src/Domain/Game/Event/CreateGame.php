@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Domain\Session\Event;
+namespace App\Domain\Game\Event;
 
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
-#[Event('create_session')]
-class CreateSession implements EventInterface
+#[Event('create_game')]
+class CreateGame implements EventInterface
 {
     public function __construct(
-        private string $processId,
+        private string $summaryType,
         private int $countOfConnections
     ) {
     }
 
-    public function getProcessId(): string
+    public function getSummaryType()
     {
-        return $this->processId;
+        return $this->summaryType;
     }
 
     public function getCountOfConnections(): int

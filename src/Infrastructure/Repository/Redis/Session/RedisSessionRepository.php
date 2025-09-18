@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Repository\Redis\Session;
 
+use App\Domain\Session\Entity\Session;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Redis\RedisClientInterface;
 use Ratchet\ConnectionInterface;
@@ -15,23 +16,16 @@ class RedisSessionRepository implements SessionRepositoryInterface
         $this->redis = $redis;
     }
 
-    public function create(mixed $session): void
+    public function create(Session $session): void
     {
-        $sessionId = $session['sessionId'];
-        $summaryType = $session['summaryType'];
-        $session = [
-            'id' => $sessionId,
-            'players' => [],
-            'summary_type' => $summaryType,
-            'sessionWord' => $session['sessionWord']
-        ];
-        $this->redis->set("game_session:$sessionId", json_encode($session));
+        $sessionId = $session->getId();
+        $this->redis->set("game_session:$sessionId", $session->toJson());
     }
 
-    public function find(string $sessionId): mixed
+    public function find(string $sessionId): Session
     {
         $data = $this->redis->get("game_session:$sessionId");
-        return $data ? json_decode($data, true) : null;
+        return $data ? Session::fromArray(json_decode($data, true)) : null;
     }
 
     public function all(): array

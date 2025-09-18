@@ -2,12 +2,11 @@
 
 namespace App\Domain\Session\Service;
 
-use App\Domain\Game\Enum\GameType;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Domain\Game\Repository\WordRepositoryInterface;
+use App\Domain\Session\Entity\Session;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\DomainLogicalException;
-use App\Util\Exception\DuplicateException;
 use App\Util\Exception\InvalidDataException;
 use App\Util\Exception\NotFoundException;
 use DateTime;
@@ -18,39 +17,22 @@ class SessionService implements SessionServiceInterface
         private SessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository,
         private ConnectionStorage $connectionStorage
-    ) {
-    }
+    ) {}
 
-    public function createSession($player, $options): mixed
+    public function createSession(string $processId, int $countOfConnections): Session
     {
-        if ($this->sessionRepository->findByConnection($player)) {
-            throw new DuplicateException('You already created or joined a session.');
-        }
-
         $sessionId = uniqid(more_entropy: true);
-        if (!isset($options['summary_type']) && $options['summary_type'] == null) {
-            throw new InvalidDataException('Not found summary_type');
-        }
-
-        if (GameType::tryFrom($options['summary_type']) === null) {
-            throw new InvalidDataException('Not such summary_type');
-        }
-
-        $sessionWord = $this->wordRepository->getRandomSessionWord();
-
-        $session = [
-            'sessionId' => $sessionId,
-            'summaryType' => $options['summary_type'],
-            'sessionWord' => $sessionWord,
-        ];
-
+        $session = new Session(
+            $sessionId,
+            $processId,
+            null,
+            null,
+            $countOfConnections,
+            []
+        );
         $this->sessionRepository->create($session);
-        $this->sessionRepository->add($sessionId, [$player]);
-
-        // Добавляем соединение в ConnectionStorage
-        $this->connectionStorage->add($sessionId, $player);
-
-        return ['sessionId' => $sessionId, 'sessionWord' => $sessionWord];
+    
+        return $session;
     }
 
     public function joinToSession($player, string $sessionId): void
@@ -111,5 +93,10 @@ class SessionService implements SessionServiceInterface
     public function delete(string $sessionId): void
     {
         $this->sessionRepository->delete($sessionId);
+    }
+
+    public function findByConnection($conn): Session
+    {
+        return $this->sessionRepository->findByConnection($conn);
     }
 }

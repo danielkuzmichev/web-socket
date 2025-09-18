@@ -2,11 +2,12 @@
 
 namespace App\Domain\Session\Repository;
 
+use App\Domain\Session\Entity\Session;
 use Ratchet\ConnectionInterface;
 
 interface SessionRepositoryInterface
 {
-    public function create(mixed $session): void;
+    public function create(Session $session): void;
 
     public function find(string $sessionId): mixed;
 

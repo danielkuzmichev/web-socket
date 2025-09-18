@@ -7,9 +7,7 @@ use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Session\Event\FinishSession;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Domain\Session\Service\TimerService;
-use App\Domain\Session\Event\JoinSession;
 use App\Infrastructure\Connection\ConnectionStorage;
-use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
 class FinishSessionHandler extends AbstractEventHandler
@@ -21,7 +19,6 @@ class FinishSessionHandler extends AbstractEventHandler
     ) {
     }
 
-
     public function getEventClass(): string
     {
         return FinishSession::class;
@@ -31,9 +28,7 @@ class FinishSessionHandler extends AbstractEventHandler
     {
         /** @var FinishSession $event */
         $sessionId = $event->getSessionId();
-        if (!$sessionId) {
-            throw new InvalidDataException('No sessionId');
-        }
+
         $this->sessionService->delete($sessionId);
         $this->timerService->cancelAll($sessionId);
 
