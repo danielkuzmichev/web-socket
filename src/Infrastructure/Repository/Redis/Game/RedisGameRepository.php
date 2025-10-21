@@ -7,7 +7,7 @@ use App\Domain\Game\Repository\GameRepositoryInterface;
 use App\Infrastructure\Redis\RedisClient;
 use App\Infrastructure\Repository\Redis\RedisRepository;
 
-class RedisWordRepository extends RedisRepository implements GameRepositoryInterface
+class RedisGameRepository extends RedisRepository implements GameRepositoryInterface
 {
     public function __construct(private RedisClient $redis, int $dbIndex = 0)
     {
@@ -17,6 +17,13 @@ class RedisWordRepository extends RedisRepository implements GameRepositoryInter
     public function save(Game $game): void
     {
         $gameId = $game->getId();
-        $this->redis->set("game:$gameId", $game->toJson());
+        $this->redis->set("game_session:$gameId", $game->toJson());
+    }
+
+    public function find(string $id): ?Game
+    {
+        $data = $this->redis->get("game_session:$id");
+
+        return $data ? Game::fromArray(json_decode($data, true)) : null;
     }
 }

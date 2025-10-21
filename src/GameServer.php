@@ -4,26 +4,21 @@ namespace App;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Domain\Game\Event\PlayerLeft;
+use App\Domain\Session\Entity\Session;
 use Ratchet\ConnectionInterface;
-use App\Domain\Session\Repository\SessionRepositoryInterface;
+use App\Domain\Session\Service\SessionServiceInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\ReturnableException;
 use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
 {
-    private WebSocketDispatcherInterface $dispatcher;
-    private ConnectionStorage $connectionStorage;
-    private SessionRepositoryInterface $sessionRepository;
 
     public function __construct(
-        WebSocketDispatcherInterface $dispatcher,
-        ConnectionStorage $connectionStorage,
-        SessionRepositoryInterface $sessionRepository
+        private WebSocketDispatcherInterface $dispatcher,
+        private ConnectionStorage $connectionStorage,
+        private SessionServiceInterface $sessionService
     ) {
-        $this->dispatcher = $dispatcher;
-        $this->connectionStorage = $connectionStorage;
-        $this->sessionRepository = $sessionRepository;
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -50,15 +45,18 @@ class GameServer implements MessageComponentInterface
         $this->connectionStorage->remove($conn);
 
         // 2. Удаляем соединение из GameSessionRepository
-        $sessionId = $this->sessionRepository->findByConnection($conn)['id'];
 
+        $session = $this->sessionService->findByConnection($conn);
+        $sessionId = $session?->getId();
         if ($sessionId !== null) {
-            $this->sessionRepository->removeConnection($sessionId, $conn);
+            $this->sessionService->removeConnection($sessionId, $conn);
 
-            // Уведомляем других игроков, что кто-то вышел
             $sessionConns = $this->connectionStorage->getConnections($sessionId);
 
-            $event = new PlayerLeft($sessionId, $conn->resourceId);
+            $event = new PlayerLeft($sessionId, $session->getProcessId(), $conn->resourceId);
+
+            // Уведомляем других игроков, что кто-то вышел
+            $this->dispatcher->dispatch($event);
 
             if (!empty($sessionConns)) {
                 foreach ($sessionConns as $playerConn) {
@@ -72,7 +70,6 @@ class GameServer implements MessageComponentInterface
                     ]));
                 }
             }
-            $this->dispatcher->dispatch($event);
         }
     }
 

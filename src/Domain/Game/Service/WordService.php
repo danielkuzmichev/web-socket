@@ -2,14 +2,16 @@
 
 namespace App\Domain\Game\Service;
 
+use App\Domain\Game\Entity\Game;
+use App\Domain\Game\Repository\GameRepositoryInterface;
 use App\Domain\Game\Service\Scoring\SummaryService;
-use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Domain\Game\Repository\WordRepositoryInterface;
+use App\Domain\Game\Entity\Player;
 
 class WordService implements WordServiceInterface
 {
     public function __construct(
-        private SessionRepositoryInterface $sessionRepository,
+        private GameRepositoryInterface $gameRepository,
         private WordRepositoryInterface $wordRepository,
         private SummaryService $summaryService
     ) {
@@ -20,31 +22,27 @@ class WordService implements WordServiceInterface
         return $this->wordRepository->exists($word);
     }
 
-    public function score(string $word, mixed $playerId, mixed $session): mixed
+    public function score(string $word, mixed $playerId, Game $game): mixed
     {
         $wordExists = $this->check($word);
         $scoreWord = 0;
         $message = 'not_found_word';
 
         if ($wordExists) {
-            $player = &$session['players'][$playerId];
-
-            if (!in_array($word, $player['words'], true)) {
+            /** @var Player $player */
+            $player = &$game->getPlayerByKey($playerId);
+            if (!in_array($word, $player->getWords(), true)) {
                 $scoreWord = mb_strlen($word);
-                $player['words'][] = $word;
+                $player->addWord($word);
                 $message = 'found_word';
-                if (isset($player['score'])) {
-                    $player['score'] = $player['score'] + $scoreWord;
-                } else {
-                    $player['score'] = $scoreWord;
-                }
+                $player->addScore($scoreWord);
             } else {
                 $message = 'repeated_word';
             }
 
-            $session['players'][$playerId] = $player;
+            $game->setPlayerByKey($playerId, $player);
 
-            $this->sessionRepository->save($session);
+            $this->gameRepository->save($game);
         }
 
         return  [

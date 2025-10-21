@@ -7,6 +7,7 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Session\Event\JoinSession;
+use App\Domain\Session\Event\PlayerJoined;
 use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use Ratchet\ConnectionInterface;
@@ -39,11 +40,18 @@ class JoinSessionHandler extends AbstractEventHandler
             'payload' => [
                 'message' => 'You joined the game session!',
                 'sessionId' => $sessionId,
-                'sessionWord' => $session['sessionWord'],
             ]
         ]));
 
-        if (count($session['players']) === 2) {
+        $this->dispatcher->dispatch(
+            new PlayerJoined(
+                $sessionId,
+                $session->getProcessId(), 
+                $conn->resourceId
+            )
+        );
+
+        if (count($session->getConnections()) === $session->getCountOfConnections()) {
             $this->startCountdown($sessionId);
         }
     }

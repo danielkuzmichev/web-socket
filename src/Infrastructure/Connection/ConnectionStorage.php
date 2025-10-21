@@ -35,7 +35,7 @@ class ConnectionStorage implements ConnectionStorageInterface
     {
         $connections = $this->getConnections($sessionId);
         foreach ($connections as $conn) {
-            $conn->send(json_encode($message));
+            $conn->send(json_encode($message, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
         }
     }
 }

@@ -8,7 +8,7 @@ class Game
         private string $id,
         private string $word,
         private string $summaryType,
-        private array $player
+        private array $players
     ) {}
 
     public function getId(): string
@@ -26,9 +26,9 @@ class Game
         return $this->summaryType;
     }
 
-    public function getPlayer(): array
+    public function getPlayers(): array
     {
-        return $this->player;
+        return $this->players;
     }
 
     public function toArray(): array
@@ -37,17 +37,49 @@ class Game
             'id' => $this->id,
             'word' => $this->word,
             'summary_type' => $this->summaryType,
-            'player' => $this->player
+            'players' => array_map(fn($player) => $player->toArray(), $this->players)
         ];
     }
 
     public function toJson(): string
     {
-        return json_encode([
-            'id' => $this->id,
-            'word' => $this->word,
-            'summary_type' => $this->summaryType,
-            'player' => $this->player
-        ], JSON_THROW_ON_ERROR);
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public static function fromArray(array $data): self
+    {
+         $players = array_map(
+            fn($playerData) => Player::fromArray($playerData),
+            $data['players'] ?? []
+        );
+
+        return new self(
+            $data['id'],
+            $data['word'],
+            $data['summary_type'],
+            $players
+        );
+    }
+
+    public function setPlayerByKey(string $id, Player $player): self
+    {
+        $this->players[$id] = $player;
+
+        return $this;
+    }
+
+    public function getPlayerByKey(string $id): ?Player
+    {
+        return $this->players[$id];
+    }
+
+    public function removePlayerById(string $id): self
+    {
+        unset($this->players[$id]);
+
+        return $this;
     }
 }

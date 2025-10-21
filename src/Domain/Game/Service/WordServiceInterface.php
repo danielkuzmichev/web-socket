@@ -2,11 +2,13 @@
 
 namespace App\Domain\Game\Service;
 
+use App\Domain\Game\Entity\Game;
+
 interface WordServiceInterface
 {
     public function check(string $word): bool;
 
-    public function score(string $word, mixed $playerId, mixed $session): mixed;
+    public function score(string $word, mixed $playerId, Game $session): mixed;
 
     public function checkLetters(string $checkedWord, string $targetWord): bool;
 }

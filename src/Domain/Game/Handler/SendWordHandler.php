@@ -5,18 +5,21 @@ namespace App\Domain\Game\Handler;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Game\Service\WordServiceInterface;
-use App\Core\Handler\EventHandlerInterface;
 use App\Domain\Game\Event\SendWord;
-use App\Domain\Session\Repository\SessionRepositoryInterface;
+use App\Domain\Game\Repository\GameRepositoryInterface;
+use App\Domain\Session\Service\SessionServiceInterface;
 use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\NotFoundException;
+use DateTime;
 use Ratchet\ConnectionInterface;
+use App\Domain\Session\Entity\Session;
 
 class SendWordHandler extends AbstractEventHandler
 {
     public function __construct(
-        private SessionRepositoryInterface $sessionRepository,
-        private WordServiceInterface $wordService
+        private SessionServiceInterface $sessionService,
+        private GameRepositoryInterface $gameRepository,
+        private WordServiceInterface $wordService,
     ) {
     }
 
@@ -29,17 +32,19 @@ class SendWordHandler extends AbstractEventHandler
     {
         /** @var SendWord $event*/
         $word = $event->getWord();
-
-        $session = $this->sessionRepository->findByConnection($conn);
+        /** @var Session $session */
+        $session = $this->sessionService->findByConnection($conn);
         if ($session === null) {
             throw new NotFoundException('No session for this connection');
         }
 
-        if ($session['startAt'] >= microtime(true)) {
+        if ($session->getStartAt() >= new DateTime()) {
             throw new DomainLogicalException('You cannot send word early');
         }
 
-        if (!$this->wordService->checkLetters($word, $session['sessionWord'])) {
+        $game = $this->gameRepository->find($session->getProcessId());
+
+        if (!$this->wordService->checkLetters($word, $game->getWord())) {
             $conn->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
@@ -50,7 +55,7 @@ class SendWordHandler extends AbstractEventHandler
             return;
         }
 
-        $result = $this->wordService->score($word, $conn->resourceId, $session);
+        $result = $this->wordService->score($word, $conn->resourceId, $game);
 
         if (!empty($result['score'])) {
             $conn->send(json_encode([
@@ -58,7 +63,7 @@ class SendWordHandler extends AbstractEventHandler
                 'payload' => [
                     'message' => $result['message'],
                     'score' => $result['score'],
-                    'total' => $session['players'][$conn->resourceId]['score'] + $result['score']
+                    'total' => $game->getPlayerByKey($conn->resourceId)->getScore()
                 ]
             ]));
         } else {

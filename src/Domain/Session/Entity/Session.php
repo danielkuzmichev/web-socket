@@ -89,9 +89,16 @@ class Session
         return $this;
     }
 
+    public function removeConnection($connectionId): self
+    {
+        unset($this->connections[$connectionId]);
+
+        return $this;
+    }
+
     public function addConnection($connection): self
     {
-        $this->connections[] = $connection;
+        $this->connections[$connection] = $connection;
 
         return $this;
     }
@@ -111,7 +118,7 @@ class Session
     /**
      * @throws JsonException
      */
-    public function toJson(int $flags = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT): string
+    public function toJson(int $flags = JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE): string
     {
         return json_encode($this->toArray(), $flags);
     }

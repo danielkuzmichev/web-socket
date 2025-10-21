@@ -5,13 +5,13 @@ namespace App\Domain\Game\Handler;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\PlayerLeft;
+use App\Domain\Game\Entity\Player;
 use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Session\Event\FinishSession;
+use App\Domain\Session\Event\PlayerJoined;
 use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
-class PlayerLeftHandler extends AbstractEventHandler
+class PlayerJoinedHandler extends AbstractEventHandler
 {
     public function __construct(
         private GameRepositoryInterface $gameRepository,
@@ -21,26 +21,24 @@ class PlayerLeftHandler extends AbstractEventHandler
 
     public function getEventClass(): string
     {
-        return PlayerLeft::class;
+        return PlayerJoined::class;
     }
 
     protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        /** @var PlayerLeft $event */
-        $sessionId = $event->getSessionId();
+        /** @var PlayerJoined $event */
+
         $gameId = $event->getGameId();
-        $playerId = $event->getPlayerId();
+        $playerId = $event->getConnectionId();
         $game = $this->gameRepository->find($gameId);
 
         if ($game === null) {
             throw new NotFoundException('Game is not found');
         }
 
-        $game->removePlayerById($playerId);
-        $this->gameRepository->save($game);
+        $player = new Player($playerId);
+        $game->setPlayerByKey($playerId, $player);
 
-        if (count($game->getPlayers()) <= 1) {
-            $this->dispatcher->dispatch(new FinishSession($sessionId));
-        }
+        $this->gameRepository->save($game);
     }
 }

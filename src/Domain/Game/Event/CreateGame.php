@@ -10,7 +10,7 @@ class CreateGame implements EventInterface
 {
     public function __construct(
         private string $summaryType,
-        private int $countOfConnections
+        private int $countOfConnections = 2
     ) {
     }
 

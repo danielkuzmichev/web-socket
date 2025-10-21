@@ -10,6 +10,7 @@ use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\InvalidDataException;
 use App\Util\Exception\NotFoundException;
 use DateTime;
+use Ratchet\ConnectionInterface;
 
 class SessionService implements SessionServiceInterface
 {
@@ -43,7 +44,7 @@ class SessionService implements SessionServiceInterface
             throw new NotFoundException('Session not found.');
         }
 
-        if (count($session['players']) >= 2) {
+        if (count($session->getConnections()) === $session->getCountOfConnections()) {
             throw new DomainLogicalException('Session is full.');
         }
 
@@ -58,36 +59,37 @@ class SessionService implements SessionServiceInterface
         $this->connectionStorage->add($sessionId, $player);
     }
 
-    public function setStart(string $sessionId, ?DateTime $time = null): array
+    public function setStart(string $sessionId, ?DateTime $time = null): Session
     {
+        /** @var Session $session */
         $session = $this->sessionRepository->find($sessionId);
 
         if (!$session) {
             throw new NotFoundException('Session not found');
         }
 
-        if (empty($session['players'])) {
+        if (empty($session->getConnections())) {
             throw new DomainLogicalException('Cannot start empty session');
         }
 
         $startAt = $time
             ? $this->validateFutureTime($time)
-            : microtime(true);
+            : (new DateTime())->modify('+5 seconds');
 
-        $session['startAt'] = $startAt;
+        $session->setStartAt($startAt);
         $this->sessionRepository->save($session);
 
         return $session;
     }
 
-    private function validateFutureTime(DateTime $time): float
+    private function validateFutureTime(DateTime $time): DateTime
     {
         if (new DateTime() >= $time) {
             throw new InvalidDataException(
                 sprintf('Start time must be in future (%s)', $time->format('d.m.Y H:i:s'))
             );
         }
-        return (float)$time->format('U.u');
+        return $time;
     }
 
     public function delete(string $sessionId): void
@@ -95,8 +97,17 @@ class SessionService implements SessionServiceInterface
         $this->sessionRepository->delete($sessionId);
     }
 
-    public function findByConnection($conn): Session
+    public function findByConnection($conn): ?Session
     {
-        return $this->sessionRepository->findByConnection($conn);
+        $sessionId = $this->sessionRepository->findByConnection($conn);
+        return is_null($sessionId) 
+            ? null 
+            : $this->sessionRepository->find($sessionId)
+        ;
+    }
+
+    public function removeConnection(string $sessionId, ConnectionInterface $conn): void
+    {
+        $this->sessionRepository->removeConnection($sessionId, $conn);
     }
 }

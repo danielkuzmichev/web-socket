@@ -37,7 +37,7 @@ class CreateSessionTest extends BaseWebSocketTestCase
     private function sendCreateSessionRequest(): array
     {
         $message = [
-            'type' => 'create_session',
+            'type' => 'create_game',
             'payload' => [
                 'summaryType' => 'unique_words_by_length',
             ]

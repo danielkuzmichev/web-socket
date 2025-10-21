@@ -30,6 +30,10 @@ services:
                 - 6379
                 - 1
 
+    App\Infrastructure\Repository\Redis\Game\RedisGameRepository:
+        arguments:
+            $redis: '@redis.default'
+
     App\Infrastructure\Repository\Redis\Session\RedisSessionRepository:
         arguments:
             $redis: '@redis.default'
