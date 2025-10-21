@@ -8,7 +8,9 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Tests/'
-            - '../src/*/Entity'
+            - '../src/Domain/*/Entity'
+            - '../src/Domain/*/Event'
+            - '../src/Core/Attribute/'
 
     redis.default:
         class: App\Infrastructure\Redis\RedisClient
@@ -28,6 +30,10 @@ services:
                 - 6379
                 - 1
 
+    App\Infrastructure\Repository\Redis\Game\RedisGameRepository:
+        arguments:
+            $redis: '@redis.default'
+
     App\Infrastructure\Repository\Redis\Session\RedisSessionRepository:
         arguments:
             $redis: '@redis.default'
@@ -45,12 +51,16 @@ services:
         resource: '../src/Domain/*/Handler/*'
         tags: ['app.message_handler']
 
-    App\Core\Dispatcher\MessageDispatcher:
-        arguments: []
+    App\Core\Dispatcher\EventDispatcher:
+        arguments:
+            $handlers: []
+            $eventClassMap: '%event_map%'
         calls:
             - method: setHandlers
               arguments:
                 - !tagged_iterator app.message_handler
+    
+    App\Core\Dispatcher\WebSocketDispatcherInterface: '@App\Core\Dispatcher\EventDispatcher'
 
     App\Infrastructure\Connection\ConnectionStorageInterface: '@App\Infrastructure\Connection\ConnectionStorage'
 
@@ -62,5 +72,5 @@ services:
 
     App\GameServer:
         arguments:
-            $dispatcher: '@App\Core\Dispatcher\MessageDispatcher'
+            $dispatcher: '@App\Core\Dispatcher\WebSocketDispatcherInterface'
             $connectionStorage: '@App\Infrastructure\Connection\ConnectionStorage'

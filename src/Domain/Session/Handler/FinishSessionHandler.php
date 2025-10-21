@@ -2,14 +2,15 @@
 
 namespace App\Domain\Session\Handler;
 
+use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Session\Event\FinishSession;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Domain\Session\Service\TimerService;
-use App\Core\Handler\MessageHandlerInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
-use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class FinishSessionHandler implements MessageHandlerInterface
+class FinishSessionHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionServiceInterface $sessionService,
@@ -18,17 +19,16 @@ class FinishSessionHandler implements MessageHandlerInterface
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'finish_session';
+        return FinishSession::class;
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $sessionId = $payload['sessionId'];
-        if (!$sessionId) {
-            throw new InvalidDataException('No sessionId');
-        }
+        /** @var FinishSession $event */
+        $sessionId = $event->getSessionId();
+
         $this->sessionService->delete($sessionId);
         $this->timerService->cancelAll($sessionId);
 

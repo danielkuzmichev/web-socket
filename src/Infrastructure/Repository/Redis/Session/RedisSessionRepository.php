@@ -2,8 +2,10 @@
 
 namespace App\Infrastructure\Repository\Redis\Session;
 
+use App\Domain\Session\Entity\Session;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Infrastructure\Redis\RedisClientInterface;
+use App\Util\Exception\NotFoundException;
 use Ratchet\ConnectionInterface;
 
 class RedisSessionRepository implements SessionRepositoryInterface
@@ -15,23 +17,16 @@ class RedisSessionRepository implements SessionRepositoryInterface
         $this->redis = $redis;
     }
 
-    public function create(mixed $session): void
+    public function create(Session $session): void
     {
-        $sessionId = $session['sessionId'];
-        $summaryType = $session['summaryType'];
-        $session = [
-            'id' => $sessionId,
-            'players' => [],
-            'summary_type' => $summaryType,
-            'sessionWord' => $session['sessionWord']
-        ];
-        $this->redis->set("game_session:$sessionId", json_encode($session));
+        $sessionId = $session->getId();
+        $this->redis->set("game_session:$sessionId", $session->toJson());
     }
 
-    public function find(string $sessionId): mixed
+    public function find(string $sessionId): ?Session
     {
         $data = $this->redis->get("game_session:$sessionId");
-        return $data ? json_decode($data, true) : null;
+        return $data ? Session::fromArray(json_decode($data, true)) : null;
     }
 
     public function all(): array
@@ -41,7 +36,7 @@ class RedisSessionRepository implements SessionRepositoryInterface
         foreach ($keys as $key) {
             $data = $this->redis->get($key);
             if ($data) {
-                $sessions[] = json_decode($data, true);
+                $sessions[] = Session::fromArray(json_decode($data, true));
             }
         }
         return $sessions;
@@ -51,8 +46,8 @@ class RedisSessionRepository implements SessionRepositoryInterface
     {
         $session = $this->find($sessionId);
         if ($session) {
-            foreach ($session['players'] as $player) {
-                $this->redis->del("connection_to_session:{$player['connection_id']}");
+            foreach ($session->getConnections() as $conn) {
+                $this->redis->del("connection_to_session:{$conn}");
             }
         }
         $this->redis->del("game_session:$sessionId");
@@ -60,30 +55,28 @@ class RedisSessionRepository implements SessionRepositoryInterface
 
     public function findByConnection(ConnectionInterface $conn): mixed
     {
+        /** @todo уйти от сущности ConnectionInterface */
         $connectionId = $conn->resourceId;
         $sessionId = $this->redis->get("connection_to_session:$connectionId");
         if (!$sessionId) {
             return null;
         }
-        return $this->find($sessionId);
+        return $sessionId;
     }
 
     public function add(string $sessionId, array $players): void
     {
         $session = $this->find($sessionId);
         if (!$session) {
-            throw new \RuntimeException("Session not found");
+            throw new NotFoundException("Session not found");
         }
+        /** @todo уйти от сущности ConnectionInterface */
         foreach ($players as $playerConn) {
             $connId = $playerConn->resourceId;
-            $session['players'][$connId] = [
-                'connection_id' => $connId,
-                'words' => []
-            ];
-
+            $session->addConnection($connId);
             $this->redis->set("connection_to_session:{$connId}", $sessionId);
         }
-        $this->redis->set("game_session:$sessionId", json_encode($session));
+        $this->save($session);
     }
 
     public function removeConnection(string $sessionId, ConnectionInterface $conn): void
@@ -95,16 +88,12 @@ class RedisSessionRepository implements SessionRepositoryInterface
         }
 
         // Убираем соединение из списка игроков
-        $players = array_filter(
-            $session['players'],
-            fn ($player) => $player['connection_id'] !== $conn->resourceId
-        );
+        $session->removeConnection($conn->resourceId);
+        $conns = $session->getConnections();
 
         // Обновляем сессию в Redis
-        if (!empty($players)) {
-            $this->redis->set("game_session:$sessionId", json_encode([
-                'players' => array_values($players) // переиндексация массива
-            ]));
+        if (!empty($conns)) {
+            $this->save($session);
         } else {
             // Если больше нет игроков, удаляем сессию полностью
             $this->redis->del("game_session:$sessionId");
@@ -114,9 +103,9 @@ class RedisSessionRepository implements SessionRepositoryInterface
         $this->redis->del("connection_to_session:{$conn->resourceId}");
     }
 
-    public function save(mixed $session): void
+    public function save(Session $session): void
     {
-        $sessionId = $session['id'];
-        $this->redis->set("game_session:$sessionId", json_encode($session, true));
+        $sessionId = $session->getId();
+        $this->redis->set("game_session:$sessionId", $session->toJson());
     }
 }

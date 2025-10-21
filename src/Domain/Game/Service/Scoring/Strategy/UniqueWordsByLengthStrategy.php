@@ -2,17 +2,18 @@
 
 namespace App\Domain\Game\Service\Scoring\Strategy;
 
+use App\Domain\Game\Entity\Player;
+
 class UniqueWordsByLengthStrategy
 {
     public static function calculate(array $players): array
     {
         $wordOwnership = [];
-        foreach ($players as $player) {
-            if (isset($player['words'])) {
-                foreach ($player['words'] as $word) {
-                    $word = mb_strtolower($word);
-                    $wordOwnership[$word][] = $player['connection_id'];
-                }
+        /** @var Player $player */
+        foreach ($players as $id => $player) {
+            foreach ($player->getWords() as $word) {
+                $word = mb_strtolower($word);
+                $wordOwnership[$word][] = $id;
             }
         }
 
@@ -20,16 +21,12 @@ class UniqueWordsByLengthStrategy
 
         // Подсчет очков
         $scores = [];
-        foreach ($players as $player) {
+        foreach ($players as $id => $player) {
             $score = 0;
-            $id = $player['connection_id'];
-
-            if (isset($player['words'])) {
-                foreach ($player['words'] as $word) {
-                    $word = mb_strtolower($word);
-                    if (isset($uniqueWords[$word]) && $uniqueWords[$word][0] === $id) {
-                        $score += mb_strlen($word);
-                    }
+            foreach ($player->getWords() as $word) {
+                $word = mb_strtolower($word);
+                if (isset($uniqueWords[$word]) && $uniqueWords[$word][0] === $id) {
+                    $score += mb_strlen($word);
                 }
             }
 

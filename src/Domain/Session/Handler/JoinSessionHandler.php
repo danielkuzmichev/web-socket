@@ -3,33 +3,33 @@
 namespace App\Domain\Session\Handler;
 
 use App\Domain\Session\Service\SessionServiceInterface;
-use App\Core\Handler\MessageHandlerInterface;
-use App\Core\Dispatcher\MessageDispatcherInterface;
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
+use App\Core\Event\EventInterface;
+use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Session\Event\JoinSession;
+use App\Domain\Session\Event\PlayerJoined;
+use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Util\Exception\InvalidDataException;
 use Ratchet\ConnectionInterface;
 
-class JoinSessionHandler implements MessageHandlerInterface
+class JoinSessionHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionServiceInterface $sessionService,
         private SessionRepositoryInterface $sessionRepository,
-        private ?MessageDispatcherInterface $dispatcher,
+        private ?WebSocketDispatcherInterface $dispatcher,
     ) {
     }
 
-    public function getType(): string
+    public function getEventClass(): string
     {
-        return 'join_session';
+        return JoinSession::class;
     }
 
-    public function handle(array $payload, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        $sessionId = $payload['sessionId'] ?? null;
-
-        if (!$sessionId) {
-            throw new InvalidDataException('Missing session ID.');
-        }
+        /** @var JoinSession $event */
+        $sessionId = $event->getSessionId() ?? null;
 
         $this->sessionService->joinToSession($conn, $sessionId);
 
@@ -40,22 +40,24 @@ class JoinSessionHandler implements MessageHandlerInterface
             'payload' => [
                 'message' => 'You joined the game session!',
                 'sessionId' => $sessionId,
-                'sessionWord' => $session['sessionWord'],
             ]
         ]));
 
-        if (count($session['players']) === 2) {
+        $this->dispatcher->dispatch(
+            new PlayerJoined(
+                $sessionId,
+                $session->getProcessId(), 
+                $conn->resourceId
+            )
+        );
+
+        if (count($session->getConnections()) === $session->getCountOfConnections()) {
             $this->startCountdown($sessionId);
         }
     }
 
     private function startCountdown(string $sessionId): void
     {
-        $this->dispatcher->dispatchFromArray([
-            'type' => 'start_session',
-            'payload' => [
-                'sessionId' => $sessionId
-            ]
-        ]);
+        $this->dispatcher->dispatch(new StartSession($sessionId));
     }
 }
