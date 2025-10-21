@@ -71,7 +71,6 @@ class EventDispatcher implements WebSocketDispatcherInterface
 
     protected function createEvent(string $type, array $payload): EventInterface
     {
-        var_dump($this->eventClassMap);
         if (!isset($this->eventClassMap[$type])) {
             throw new \InvalidArgumentException("Unknown event type '{$type}'");
         }

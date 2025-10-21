@@ -21,7 +21,7 @@ class JoinSessionTest extends BaseWebSocketTestCase
         // 1. Первый игрок создает сессию
         $creatorClient = $this->getClient();
         $createResponse = $creatorClient->sendWebSocketMessage([
-            'type' => 'create_session',
+            'type' => 'create_game',
             'payload' => [
                 'summaryType' => 'unique_words_by_length',
             ]
@@ -54,7 +54,6 @@ class JoinSessionTest extends BaseWebSocketTestCase
             'payload' => [
                 'message' => 'You joined the game session!',
                 'sessionId' => $sessionId,
-                'sessionWord' => $session['sessionWord'],
             ]
         ];
 
@@ -63,7 +62,7 @@ class JoinSessionTest extends BaseWebSocketTestCase
 
         // 3. Проверяем, что сессия обновилась в репозитории
         $updatedSession = $this->sessionRepository->find($sessionId);
-        $this->assertCount(2, $updatedSession['players']);
+        $this->assertCount(2, $updatedSession->getConnections());
 
         $expectedJoinResponse1 = [
             'type' => 'countdown',

@@ -2,15 +2,15 @@
 
 namespace App\Domain\Session\Service;
 
-use App\Domain\Game\Enum\GameType;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
 use App\Domain\Game\Repository\WordRepositoryInterface;
+use App\Domain\Session\Entity\Session;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\DomainLogicalException;
-use App\Util\Exception\DuplicateException;
 use App\Util\Exception\InvalidDataException;
 use App\Util\Exception\NotFoundException;
 use DateTime;
+use Ratchet\ConnectionInterface;
 
 class SessionService implements SessionServiceInterface
 {
@@ -18,39 +18,22 @@ class SessionService implements SessionServiceInterface
         private SessionRepositoryInterface $sessionRepository,
         private WordRepositoryInterface $wordRepository,
         private ConnectionStorage $connectionStorage
-    ) {
-    }
+    ) {}
 
-    public function createSession($player, $options): mixed
+    public function createSession(string $processId, int $countOfConnections): Session
     {
-        if ($this->sessionRepository->findByConnection($player)) {
-            throw new DuplicateException('You already created or joined a session.');
-        }
-
         $sessionId = uniqid(more_entropy: true);
-        if (!isset($options['summary_type']) && $options['summary_type'] == null) {
-            throw new InvalidDataException('Not found summary_type');
-        }
-
-        if (GameType::tryFrom($options['summary_type']) === null) {
-            throw new InvalidDataException('Not such summary_type');
-        }
-
-        $sessionWord = $this->wordRepository->getRandomSessionWord();
-
-        $session = [
-            'sessionId' => $sessionId,
-            'summaryType' => $options['summary_type'],
-            'sessionWord' => $sessionWord,
-        ];
-
+        $session = new Session(
+            $sessionId,
+            $processId,
+            null,
+            null,
+            $countOfConnections,
+            []
+        );
         $this->sessionRepository->create($session);
-        $this->sessionRepository->add($sessionId, [$player]);
-
-        // Добавляем соединение в ConnectionStorage
-        $this->connectionStorage->add($sessionId, $player);
-
-        return ['sessionId' => $sessionId, 'sessionWord' => $sessionWord];
+    
+        return $session;
     }
 
     public function joinToSession($player, string $sessionId): void
@@ -61,7 +44,7 @@ class SessionService implements SessionServiceInterface
             throw new NotFoundException('Session not found.');
         }
 
-        if (count($session['players']) >= 2) {
+        if (count($session->getConnections()) === $session->getCountOfConnections()) {
             throw new DomainLogicalException('Session is full.');
         }
 
@@ -76,40 +59,55 @@ class SessionService implements SessionServiceInterface
         $this->connectionStorage->add($sessionId, $player);
     }
 
-    public function setStart(string $sessionId, ?DateTime $time = null): array
+    public function setStart(string $sessionId, ?DateTime $time = null): Session
     {
+        /** @var Session $session */
         $session = $this->sessionRepository->find($sessionId);
 
         if (!$session) {
             throw new NotFoundException('Session not found');
         }
 
-        if (empty($session['players'])) {
+        if (empty($session->getConnections())) {
             throw new DomainLogicalException('Cannot start empty session');
         }
 
         $startAt = $time
             ? $this->validateFutureTime($time)
-            : microtime(true);
+            : (new DateTime())->modify('+5 seconds');
 
-        $session['startAt'] = $startAt;
+        $session->setStartAt($startAt);
         $this->sessionRepository->save($session);
 
         return $session;
     }
 
-    private function validateFutureTime(DateTime $time): float
+    private function validateFutureTime(DateTime $time): DateTime
     {
         if (new DateTime() >= $time) {
             throw new InvalidDataException(
                 sprintf('Start time must be in future (%s)', $time->format('d.m.Y H:i:s'))
             );
         }
-        return (float)$time->format('U.u');
+        return $time;
     }
 
     public function delete(string $sessionId): void
     {
         $this->sessionRepository->delete($sessionId);
+    }
+
+    public function findByConnection($conn): ?Session
+    {
+        $sessionId = $this->sessionRepository->findByConnection($conn);
+        return is_null($sessionId) 
+            ? null 
+            : $this->sessionRepository->find($sessionId)
+        ;
+    }
+
+    public function removeConnection(string $sessionId, ConnectionInterface $conn): void
+    {
+        $this->sessionRepository->removeConnection($sessionId, $conn);
     }
 }
