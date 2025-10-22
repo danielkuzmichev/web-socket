@@ -5,7 +5,8 @@
         "symfony/dependency-injection": "^7.2",
         "symfony/config": "^7.2",
         "symfony/yaml": "^7.2",
-        "react/event-loop": "^1.5"
+        "react/event-loop": "^1.5",
+        "monolog/monolog": "^3.9"
     },
     "autoload": {
       "psr-4": {

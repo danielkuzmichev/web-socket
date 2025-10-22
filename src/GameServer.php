@@ -4,11 +4,11 @@ namespace App;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Domain\Game\Event\PlayerLeft;
-use App\Domain\Session\Entity\Session;
 use Ratchet\ConnectionInterface;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\ReturnableException;
+use Psr\Log\LoggerInterface;
 use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
@@ -17,12 +17,14 @@ class GameServer implements MessageComponentInterface
     public function __construct(
         private WebSocketDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
-        private SessionServiceInterface $sessionService
+        private SessionServiceInterface $sessionService,
+        private LoggerInterface $logger,
     ) {
     }
 
     public function onOpen(ConnectionInterface $conn)
     {
+        $this->logger->info('Новое подключение', ['id' => $conn->resourceId]);
         echo "New connection: {$conn->resourceId}\n";
     }
 
@@ -41,6 +43,7 @@ class GameServer implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $conn): void
     {
+        $this->logger->info('Отключение', ['id' => $conn->resourceId]);
         // 1. Удаляем соединение из ConnectionStorage
         $this->connectionStorage->remove($conn);
 
@@ -75,6 +78,12 @@ class GameServer implements MessageComponentInterface
 
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
+        $this->logger->error($e->getMessage(),
+            [
+                'file' => "{$e->getFile()}:{$e->getLine()}", 
+                'trace' => $e->getTrace(),
+            ]
+        );
         echo "Error: {$e->getMessage()}\n";
         $conn->send(json_encode([
             'type' => 'error',

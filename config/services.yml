@@ -1,3 +1,7 @@
+parameters:
+    kernel.project_dir: '%env(resolve:PROJECT_DIR)%'
+    kernel.logs_dir: '%kernel.project_dir%/var/log'
+
 services:
     _defaults:
         autowire: true
@@ -74,3 +78,4 @@ services:
         arguments:
             $dispatcher: '@App\Core\Dispatcher\WebSocketDispatcherInterface'
             $connectionStorage: '@App\Infrastructure\Connection\ConnectionStorage'
+            $logger: '@websocket.logger'
