@@ -8,7 +8,8 @@ class Game
         private string $id,
         private string $word,
         private string $summaryType,
-        private array $players
+        private array $players,
+        private string $lang,
     ) {}
 
     public function getId(): string
@@ -35,6 +36,7 @@ class Game
     {
         return [
             'id' => $this->id,
+            'lang' => $this->lang,
             'word' => $this->word,
             'summary_type' => $this->summaryType,
             'players' => array_map(fn($player) => $player->toArray(), $this->players)
@@ -60,7 +62,8 @@ class Game
             $data['id'],
             $data['word'],
             $data['summary_type'],
-            $players
+            $players,
+            $data['lang']
         );
     }
 
@@ -79,6 +82,19 @@ class Game
     public function removePlayerById(string $id): self
     {
         unset($this->players[$id]);
+
+        return $this;
+    }
+
+
+    public function getLang()
+    {
+        return $this->lang;
+    }
+
+    public function setLang($lang)
+    {
+        $this->lang = $lang;
 
         return $this;
     }

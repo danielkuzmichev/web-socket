@@ -17,14 +17,14 @@ class WordService implements WordServiceInterface
     ) {
     }
 
-    public function check(string $word): bool
+    public function check(string $word, string $lang): bool
     {
-        return $this->wordRepository->exists($word);
+        return $this->wordRepository->exists($word, $lang);
     }
 
     public function score(string $word, mixed $playerId, Game $game): mixed
     {
-        $wordExists = $this->check($word);
+        $wordExists = $this->check($word, $game->getLang());
         $scoreWord = 0;
         $message = 'not_found_word';
 

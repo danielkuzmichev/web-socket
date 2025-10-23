@@ -35,8 +35,9 @@ class CreateGameHandler extends AbstractEventHandler
         }
         /** @var CreateGame $event */
         $summaryType = $event->getSummaryType();
+        $lang = $event->getLang();
         $gameId = uniqid(more_entropy: true);
-        $this->gameService->createGame($gameId, $summaryType);
+        $this->gameService->createGame($gameId, $summaryType, $lang);
         $this->dispatcher->dispatch(new CreateSession($gameId, $event->getCountOfConnections()), $conn);
     }
 }

@@ -3,7 +3,7 @@ APP_CONTAINER=websocket-server
 REDIS_CONTAINER=redis
 
 # Путь до скрипта импорта слов
-IMPORT_SCRIPT=bin/import-word-in-redis.php
+IMPORT_SCRIPT=bin/import-word-in-redis.php data/russian_nouns.txt -a ru data/english_nouns.txt -a en
 
 # Сборка контейнеров
 build:

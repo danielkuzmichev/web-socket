@@ -6,7 +6,7 @@ use App\Domain\Game\Entity\Game;
 
 interface WordServiceInterface
 {
-    public function check(string $word): bool;
+    public function check(string $word, string $lang): bool;
 
     public function score(string $word, mixed $playerId, Game $session): mixed;
 
