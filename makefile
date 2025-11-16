@@ -9,6 +9,9 @@ IMPORT_SCRIPT=bin/import-word-in-redis.php
 build:
 	docker compose build
 
+composer-install:
+	docker compose run --rm websocket-server composer install
+
 up: 
 	docker compose up
 
