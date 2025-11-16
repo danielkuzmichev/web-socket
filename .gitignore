@@ -4,9 +4,6 @@
 # Папки с кэшами
 /vendor/
 
-# Файлы Composer
-composer.lock
-
 # Файлы среды разработки
 *.env
 
