@@ -6,6 +6,9 @@ use App\Domain\Game\Entity\Player;
 
 class UniqueWordsByLengthStrategy
 {
+    /**
+     * @param Player[] $players
+     */
     public static function calculate(array $players): array
     {
         $wordOwnership = [];
