@@ -13,38 +13,41 @@ class TotalScoreStrategy
     {
         $result = [];
         $scores = [];
-        
-        foreach($players as $player) {
+
+        foreach ($players as $player) {
             $score = count($player->getWords());
             $id = $player->getId();
-            
+
             $result[$id] = [
                 'score' => $score,
                 'place' => 0,
                 'is_winner' => false
             ];
-            
+
             $scores[$id] = $score;
         }
 
         arsort($scores);
-        
+        $result = [];
         $place = 1;
-        $previousScore = null;
-        $actualPlace = 1;
-        
-        foreach($scores as $id => $score) {
-            if ($previousScore !== null && $score !== $previousScore) {
-                $actualPlace = $place;
+        $prevScore = 1;
+        $realPlace = 1;
+
+        foreach ($scores as $id => $score) {
+            if ($prevScore !== null && $score < $prevScore) {
+                $place = $realPlace;
             }
-            
-            $result[$id]['place'] = $actualPlace;
-            $result[$id]['is_winner'] = ($actualPlace === 1);
-            
-            $previousScore = $score;
-            $place++;
+
+            $result[$id] = [
+                'score' => $score,
+                'place' => $place,
+                'is_winner' => $place === 1
+            ];
+
+            $prevScore = $score;
+            $realPlace++;
         }
-        
+        var_dump($result);
         return $result;
     }
 }

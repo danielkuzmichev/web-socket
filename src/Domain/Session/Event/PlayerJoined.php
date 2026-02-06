@@ -11,7 +11,7 @@ class PlayerJoined implements EventInterface
     public function __construct(
         private string $sessionId,
         private string $gameId,
-        private string $connectionId,
+        private string $playerToken,
     ) {
     }
 
@@ -25,8 +25,8 @@ class PlayerJoined implements EventInterface
         return $this->gameId;
     }
 
-    public function getConnectionId()
+    public function getPlayerToken()
     {
-        return $this->connectionId;
+        return $this->playerToken;
     }
 }

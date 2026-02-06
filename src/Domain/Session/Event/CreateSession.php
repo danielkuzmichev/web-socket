@@ -10,7 +10,8 @@ class CreateSession implements EventInterface
 {
     public function __construct(
         private string $processId,
-        private int $countOfConnections
+        private int $countOfConnections,
+        private string $playerToken
     ) {
     }
 
@@ -22,5 +23,10 @@ class CreateSession implements EventInterface
     public function getCountOfConnections(): int
     {
         return $this->countOfConnections;
+    }
+
+    public function getPlayerToken(): string
+    {
+        return $this->playerToken;
     }
 }

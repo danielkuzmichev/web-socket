@@ -8,7 +8,8 @@ class Player
         private string $id,
         private array $words = [],
         private float $score = 0
-    ) {}
+    ) {
+    }
 
     public function getId(): string
     {

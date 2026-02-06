@@ -16,7 +16,7 @@ up:
 	docker compose up
 
 # Перезапуск контейнера с приложением
-restart-app:
+app-restart:
 	docker compose restart $(APP_CONTAINER)
 
 # Выполнение PHP скрипта импорта слов в Redis

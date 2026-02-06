@@ -29,9 +29,10 @@ class JoinSessionHandler extends AbstractEventHandler
     public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
         /** @var JoinSession $event */
+        $playerToken = $event->getPlayerToken();
         $sessionId = $event->getSessionId() ?? null;
 
-        $this->sessionService->joinToSession($conn, $sessionId);
+        $this->sessionService->joinToSession($playerToken, $sessionId, $conn);
 
         $session = $this->sessionRepository->find($sessionId);
 
@@ -46,8 +47,8 @@ class JoinSessionHandler extends AbstractEventHandler
         $this->dispatcher->dispatch(
             new PlayerJoined(
                 $sessionId,
-                $session->getProcessId(), 
-                $conn->resourceId
+                $session->getProcessId(),
+                $playerToken
             )
         );
 

@@ -20,7 +20,6 @@ class StartSessionHandler extends AbstractEventHandler
     private const DELETE_DELAY = 2;
 
     public function __construct(
-        private SessionRepositoryInterface $sessionRepository,
         private WebSocketDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
         private SessionServiceInterface $sessionService,

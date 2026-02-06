@@ -10,7 +10,8 @@ class SendWord implements EventInterface
 {
     public function __construct(
         private string $sessionId,
-        private string $word
+        private string $word,
+        private string $playerToken
     ) {
     }
 
@@ -22,5 +23,10 @@ class SendWord implements EventInterface
     public function getWord(): string
     {
         return $this->word;
+    }
+
+    public function getPlayerToken(): string
+    {
+        return $this->playerToken;
     }
 }

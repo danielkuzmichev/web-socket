@@ -23,7 +23,6 @@ class CreateSessionTest extends BaseWebSocketTestCase
     {
         // 1. Первое создание сессии - должно быть успешно
         $firstResponse = $this->sendCreateSessionRequest()[0];
-
         $this->assertSessionCreatedSuccessfully($firstResponse);
         $sessionId = $firstResponse['payload']['sessionId'];
         $this->assertSessionExistsInRepository($sessionId);
@@ -40,6 +39,7 @@ class CreateSessionTest extends BaseWebSocketTestCase
             'type' => 'create_game',
             'payload' => [
                 'summaryType' => 'unique_words_by_length',
+                'playerToken' => '123',
             ]
         ];
 

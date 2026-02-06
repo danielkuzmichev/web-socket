@@ -18,7 +18,6 @@ class CreateGameHandler extends AbstractEventHandler
     public function __construct(
         private SessionServiceInterface $sessionService,
         private GameServiceInterface $gameService,
-        private WordRepositoryInterface $wordRepository,
         private WebSocketDispatcherInterface $dispatcher
     ) {
     }
@@ -30,13 +29,14 @@ class CreateGameHandler extends AbstractEventHandler
 
     protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        if ($this->sessionService->findByConnection($conn)) {
+        /** @var CreateGame $event */
+        if ($this->sessionService->existByPlayerToken($event->getPlayerToken())) {
             throw new DuplicateException('You already created or joined a session.');
         }
         /** @var CreateGame $event */
         $summaryType = $event->getSummaryType();
         $gameId = uniqid(more_entropy: true);
         $this->gameService->createGame($gameId, $summaryType);
-        $this->dispatcher->dispatch(new CreateSession($gameId, $event->getCountOfConnections()), $conn);
+        $this->dispatcher->dispatch(new CreateSession($gameId, $event->getCountOfConnections(), $event->getPlayerToken()), $conn);
     }
 }

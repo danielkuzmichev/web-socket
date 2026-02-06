@@ -24,6 +24,7 @@ class JoinSessionTest extends BaseWebSocketTestCase
             'type' => 'create_game',
             'payload' => [
                 'summaryType' => 'unique_words_by_length',
+                'playerToken' => '1234',
             ]
         ]);
 
@@ -43,7 +44,8 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $joinResponse = $joinerClient->sendWebSocketMessage([
             'type' => 'join_session',
             'payload' => [
-                'sessionId' => $sessionId
+                'sessionId' => $sessionId,
+                'playerToken' => '123456'
             ]
         ]);
 
@@ -81,7 +83,8 @@ class JoinSessionTest extends BaseWebSocketTestCase
         $client->sendWebSocketMessage([
             'type' => 'join_session',
             'payload' => [
-                'sessionId' => 'non_existing_id'
+                'sessionId' => 'non_existing_id',
+                'playerToken' => 'player_999'
             ]
         ]);
 

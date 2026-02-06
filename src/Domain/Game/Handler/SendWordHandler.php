@@ -32,8 +32,10 @@ class SendWordHandler extends AbstractEventHandler
     {
         /** @var SendWord $event*/
         $word = $event->getWord();
+        $playerToken = $event->getPlayerToken();
         /** @var Session $session */
-        $session = $this->sessionService->findByConnection($conn);
+        $sessionId = $this->sessionService->findByPlayerToken($playerToken);
+        $session = $this->sessionService->find($sessionId);
         if ($session === null) {
             throw new NotFoundException('No session for this connection');
         }
@@ -55,19 +57,19 @@ class SendWordHandler extends AbstractEventHandler
             return;
         }
 
-        $result = $this->wordService->score($word, $conn->resourceId, $game);
+        $result = $this->wordService->score($word, $playerToken, $game);
 
         if (!empty($result['score'])) {
-            $conn->send(json_encode([
+            $conn?->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
                     'message' => $result['message'],
                     'score' => $result['score'],
-                    'total' => $game->getPlayerByKey($conn->resourceId)->getScore()
+                    'total' => $game->getPlayerByKey($playerToken)->getScore()
                 ]
             ]));
         } else {
-            $conn->send(json_encode([
+            $conn?->send(json_encode([
                 'type' => 'word_result',
                 'payload' => [
                     'message' => $result['message'],

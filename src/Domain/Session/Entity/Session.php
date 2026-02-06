@@ -15,7 +15,8 @@ class Session
         protected ?DateTime $endAt,
         protected int $countOfConnections,
         protected array $connections = [],
-    ) {}
+    ) {
+    }
 
     public function getId(): string
     {

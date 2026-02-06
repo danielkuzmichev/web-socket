@@ -15,7 +15,7 @@ use Throwable;
 
 class CreateSessionHandler extends AbstractEventHandler
 {
-    public function __construct( 
+    public function __construct(
         private SessionServiceInterface $sessionService,
         private ConnectionStorageInterface $connectionStorage,
         private ?WebSocketDispatcherInterface $dispatcher,
@@ -29,17 +29,18 @@ class CreateSessionHandler extends AbstractEventHandler
 
     public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
-        if ($this->sessionService->findByConnection($conn)) {
+        /** @var CreateSession $event */
+        $playerToken = $event->getPlayerToken();
+        if ($this->sessionService->existByPlayerToken($playerToken)) {
             throw new DuplicateException('You already created or joined a session.');
         }
 
         try {
-            /** @var CreateSession $event */
             $processId = $event->getProcessId();
             $session = $this->sessionService->createSession($processId, $event->getCountOfConnections());
             $sessionId = $session->getId();
-            $this->sessionService->joinToSession($conn, $sessionId);
-            $this->connectionStorage->add($sessionId, $conn);
+            $this->sessionService->joinToSession($playerToken, $sessionId);
+            $conn && $this->connectionStorage->add($sessionId, $conn);
         } catch (Throwable $e) {
             $this->dispatcher->dispatch(new CreateSessionFail($processId));
             throw $e;
