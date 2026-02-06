@@ -36,11 +36,12 @@ class SummaryResultHandler extends AbstractEventHandler
 
         $connections = $this->connectionStorage->getConnections($sessionId);
         foreach ($connections as $playerConn) {
+            $playerToken = $this->sessionRepository->getPlayerTokenByConnection($playerConn);
             $playerConn->send(json_encode([
                 'type' => 'summarize_results',
                 'payload' => [
                     'message' => 'Results are summarized',
-                    'results' => isset($summary[$playerConn->resourceId]) && $summary[$playerConn->resourceId]['is_winner']
+                    'results' => $playerToken && isset($summary[$playerToken]) && $summary[$playerToken]['is_winner']
                 ]
             ]));
         }

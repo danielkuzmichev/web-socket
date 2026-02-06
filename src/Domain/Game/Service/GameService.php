@@ -16,15 +16,15 @@ class GameService implements GameServiceInterface
 
     public function createGame(string $id, string $summaryType): Game
     {
-       $sessionWord = $this->wordRepository->getRandomSessionWord(); 
-       $game = new Game(
+        $sessionWord = $this->wordRepository->getRandomSessionWord();
+        $game = new Game(
             $id,
             $sessionWord,
             $summaryType,
             []
-       );
-       $this->gameRepository->save($game);
+        );
+        $this->gameRepository->save($game);
 
-       return $game;
+        return $game;
     }
 }

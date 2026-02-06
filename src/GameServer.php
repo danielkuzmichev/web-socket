@@ -13,7 +13,6 @@ use Ratchet\WebSocket\MessageComponentInterface;
 
 class GameServer implements MessageComponentInterface
 {
-
     public function __construct(
         private WebSocketDispatcherInterface $dispatcher,
         private ConnectionStorage $connectionStorage,
@@ -48,7 +47,6 @@ class GameServer implements MessageComponentInterface
         $this->connectionStorage->remove($conn);
 
         // 2. Удаляем соединение из GameSessionRepository
-
         $session = $this->sessionService->findByConnection($conn);
         $sessionId = $session?->getId();
         if ($sessionId !== null) {
@@ -78,9 +76,10 @@ class GameServer implements MessageComponentInterface
 
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
-        $this->logger->error($e->getMessage(),
+        $this->logger->error(
+            $e->getMessage(),
             [
-                'file' => "{$e->getFile()}:{$e->getLine()}", 
+                'file' => "{$e->getFile()}:{$e->getLine()}",
                 'trace' => $e->getTrace(),
             ]
         );

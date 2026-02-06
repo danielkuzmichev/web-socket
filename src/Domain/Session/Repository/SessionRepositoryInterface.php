@@ -17,9 +17,13 @@ interface SessionRepositoryInterface
 
     public function findByConnection(ConnectionInterface $conn): mixed;
 
-    public function add(string $sessionId, array $players): void;
+    public function add(string $sessionId, array $players, ?ConnectionInterface $conn = null): void;
 
     public function removeConnection(string $sessionId, ConnectionInterface $conn): void;
 
+    public function getPlayerTokenByConnection(ConnectionInterface $conn): ?string;
+
     public function save(Session $session): void;
+
+    public function findByPlayerToken(string $playerToken): ?string;
 }

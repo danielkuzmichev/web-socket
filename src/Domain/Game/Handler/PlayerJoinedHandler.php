@@ -14,8 +14,7 @@ use Ratchet\ConnectionInterface;
 class PlayerJoinedHandler extends AbstractEventHandler
 {
     public function __construct(
-        private GameRepositoryInterface $gameRepository,
-        private WebSocketDispatcherInterface $dispatcher
+        private GameRepositoryInterface $gameRepository
     ) {
     }
 
@@ -27,17 +26,16 @@ class PlayerJoinedHandler extends AbstractEventHandler
     protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
     {
         /** @var PlayerJoined $event */
-
         $gameId = $event->getGameId();
-        $playerId = $event->getConnectionId();
+        $playerToken = $event->getPlayerToken();
         $game = $this->gameRepository->find($gameId);
 
         if ($game === null) {
             throw new NotFoundException('Game is not found');
         }
 
-        $player = new Player($playerId);
-        $game->setPlayerByKey($playerId, $player);
+        $player = new Player($playerToken);
+        $game->setPlayerByKey($playerToken, $player);
 
         $this->gameRepository->save($game);
     }

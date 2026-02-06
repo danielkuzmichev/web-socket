@@ -9,7 +9,8 @@ class Game
         private string $word,
         private string $summaryType,
         private array $players
-    ) {}
+    ) {
+    }
 
     public function getId(): string
     {
@@ -37,7 +38,7 @@ class Game
             'id' => $this->id,
             'word' => $this->word,
             'summary_type' => $this->summaryType,
-            'players' => array_map(fn($player) => $player->toArray(), $this->players)
+            'players' => array_map(fn ($player) => $player->toArray(), $this->players)
         ];
     }
 
@@ -51,8 +52,8 @@ class Game
      */
     public static function fromArray(array $data): self
     {
-         $players = array_map(
-            fn($playerData) => Player::fromArray($playerData),
+        $players = array_map(
+            fn ($playerData) => Player::fromArray($playerData),
             $data['players'] ?? []
         );
 

@@ -20,18 +20,18 @@ class RedisSessionRepository implements SessionRepositoryInterface
     public function create(Session $session): void
     {
         $sessionId = $session->getId();
-        $this->redis->set("game_session:$sessionId", $session->toJson());
+        $this->redis->set("session:$sessionId", $session->toJson());
     }
 
     public function find(string $sessionId): ?Session
     {
-        $data = $this->redis->get("game_session:$sessionId");
+        $data = $this->redis->get("session:$sessionId");
         return $data ? Session::fromArray(json_decode($data, true)) : null;
     }
 
     public function all(): array
     {
-        $keys = $this->redis->keys("game_session:*");
+        $keys = $this->redis->keys("session:*");
         $sessions = [];
         foreach ($keys as $key) {
             $data = $this->redis->get($key);
@@ -50,31 +50,48 @@ class RedisSessionRepository implements SessionRepositoryInterface
                 $this->redis->del("connection_to_session:{$conn}");
             }
         }
-        $this->redis->del("game_session:$sessionId");
+        $this->redis->del("session:$sessionId");
     }
 
     public function findByConnection(ConnectionInterface $conn): mixed
     {
         /** @todo уйти от сущности ConnectionInterface */
-        $connectionId = $conn->resourceId;
-        $sessionId = $this->redis->get("connection_to_session:$connectionId");
+        $playerToken = $this->redis->get("connection_resource_to_token:{$conn->resourceId}");
+        if ($playerToken) {
+            $sessionId = $this->redis->get("connection_to_session:$playerToken");
+            if ($sessionId) {
+                return $sessionId;
+            }
+        }
+
+        // Fallback for legacy mapping where resourceId was used directly
+        $legacySessionId = $this->redis->get("connection_to_session:{$conn->resourceId}");
+
+        return $legacySessionId ?: null;
+    }
+
+    public function findByPlayerToken(string $playerToken): ?string
+    {
+        $sessionId = $this->redis->get("connection_to_session:$playerToken");
         if (!$sessionId) {
             return null;
         }
         return $sessionId;
     }
 
-    public function add(string $sessionId, array $players): void
+    public function add(string $sessionId, array $players, ?ConnectionInterface $conn = null): void
     {
         $session = $this->find($sessionId);
         if (!$session) {
             throw new NotFoundException("Session not found");
         }
-        /** @todo уйти от сущности ConnectionInterface */
-        foreach ($players as $playerConn) {
-            $connId = $playerConn->resourceId;
-            $session->addConnection($connId);
-            $this->redis->set("connection_to_session:{$connId}", $sessionId);
+
+        foreach ($players as $playerToken) {
+            $session->addConnection($playerToken);
+            $this->redis->set("connection_to_session:{$playerToken}", $sessionId);
+            if ($conn !== null) {
+                $this->redis->set("connection_resource_to_token:{$conn->resourceId}", $playerToken);
+            }
         }
         $this->save($session);
     }
@@ -87,8 +104,15 @@ class RedisSessionRepository implements SessionRepositoryInterface
             return;
         }
 
-        // Убираем соединение из списка игроков
-        $session->removeConnection($conn->resourceId);
+        $playerToken = $this->redis->get("connection_resource_to_token:{$conn->resourceId}");
+
+        if ($playerToken !== null) {
+            $session->removeConnection($playerToken);
+        } else {
+            // Fallback cleanup if token not found
+            $session->removeConnection($conn->resourceId);
+        }
+
         $conns = $session->getConnections();
 
         // Обновляем сессию в Redis
@@ -96,16 +120,29 @@ class RedisSessionRepository implements SessionRepositoryInterface
             $this->save($session);
         } else {
             // Если больше нет игроков, удаляем сессию полностью
-            $this->redis->del("game_session:$sessionId");
+            $this->redis->del("session:$sessionId");
         }
 
-        // Удаляем привязку connection -> session
+        // Удаляем привязки connection -> playerToken и playerToken -> session
+        if ($playerToken !== null) {
+            $this->redis->del("connection_to_session:{$playerToken}");
+        }
+
+        // Clean up possible legacy mapping and resource->token mapping
         $this->redis->del("connection_to_session:{$conn->resourceId}");
+        $this->redis->del("connection_resource_to_token:{$conn->resourceId}");
+    }
+
+    public function getPlayerTokenByConnection(ConnectionInterface $conn): ?string
+    {
+        $playerToken = $this->redis->get("connection_resource_to_token:{$conn->resourceId}");
+
+        return $playerToken ?: null;
     }
 
     public function save(Session $session): void
     {
         $sessionId = $session->getId();
-        $this->redis->set("game_session:$sessionId", $session->toJson());
+        $this->redis->set("session:$sessionId", $session->toJson());
     }
 }

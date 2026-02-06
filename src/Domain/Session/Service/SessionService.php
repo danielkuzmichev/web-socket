@@ -16,9 +16,14 @@ class SessionService implements SessionServiceInterface
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
-        private WordRepositoryInterface $wordRepository,
         private ConnectionStorage $connectionStorage
-    ) {}
+    ) {
+    }
+
+    public function find(string $sessionId): ?Session
+    {
+        return $this->sessionRepository->find($sessionId);
+    }
 
     public function createSession(string $processId, int $countOfConnections): Session
     {
@@ -32,11 +37,11 @@ class SessionService implements SessionServiceInterface
             []
         );
         $this->sessionRepository->create($session);
-    
+
         return $session;
     }
 
-    public function joinToSession($player, string $sessionId): void
+    public function joinToSession(string $playerToken, string $sessionId, ?ConnectionInterface $conn = null): void
     {
         $session = $this->sessionRepository->find($sessionId);
 
@@ -48,15 +53,15 @@ class SessionService implements SessionServiceInterface
             throw new DomainLogicalException('Session is full.');
         }
 
-        if ($this->sessionRepository->findByConnection($player)) {
+        if ($this->sessionRepository->findByPlayerToken($playerToken)) {
             throw new DomainLogicalException('You already joined or created a session.');
         }
 
         // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
-        $this->sessionRepository->add($sessionId, [$player]);
+        $this->sessionRepository->add($sessionId, [$playerToken], $conn);
 
         // И в ConnectionStorage
-        $this->connectionStorage->add($sessionId, $player);
+        $conn && $this->connectionStorage->add($sessionId, $conn);
     }
 
     public function setStart(string $sessionId, ?DateTime $time = null): Session
@@ -100,8 +105,8 @@ class SessionService implements SessionServiceInterface
     public function findByConnection($conn): ?Session
     {
         $sessionId = $this->sessionRepository->findByConnection($conn);
-        return is_null($sessionId) 
-            ? null 
+        return is_null($sessionId)
+            ? null
             : $this->sessionRepository->find($sessionId)
         ;
     }
@@ -109,5 +114,20 @@ class SessionService implements SessionServiceInterface
     public function removeConnection(string $sessionId, ConnectionInterface $conn): void
     {
         $this->sessionRepository->removeConnection($sessionId, $conn);
+    }
+
+    public function findByPlayerToken(string $playerToken): ?string
+    {
+        $sessionId = $this->sessionRepository->findByPlayerToken($playerToken);
+        return is_null($sessionId)
+            ? null
+            : $sessionId
+        ;
+    }
+
+    public function existByPlayerToken(string $playerToken): bool
+    {
+        $sessionId = $this->sessionRepository->findByPlayerToken($playerToken);
+        return !is_null($sessionId);
     }
 }

@@ -68,7 +68,7 @@ services:
 
     App\Infrastructure\Connection\ConnectionStorageInterface: '@App\Infrastructure\Connection\ConnectionStorage'
 
-    App\Domain\Repository\Session\SessionRepositoryInterface: '@App\Infrastructure\Repository\Redis\Session\RedisSessionRepository'
+    App\Domain\Session\Repository\SessionRepositoryInterface: '@App\Infrastructure\Repository\Redis\Session\RedisSessionRepository'
 
     App\Domain\Repository\Game\RedisWordRepositoryInterface: '@App\Infrastructure\Repository\Redis\Game\RedisWordRepository'
 
@@ -79,3 +79,5 @@ services:
             $dispatcher: '@App\Core\Dispatcher\WebSocketDispatcherInterface'
             $connectionStorage: '@App\Infrastructure\Connection\ConnectionStorage'
             $logger: '@websocket.logger'
+
+    App\Domain\Game\Repository\GameRepositoryInterface: '@App\Infrastructure\Repository\Redis\Game\RedisGameRepository'

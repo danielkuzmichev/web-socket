@@ -12,8 +12,7 @@ class WordService implements WordServiceInterface
 {
     public function __construct(
         private GameRepositoryInterface $gameRepository,
-        private WordRepositoryInterface $wordRepository,
-        private SummaryService $summaryService
+        private WordRepositoryInterface $wordRepository
     ) {
     }
 
@@ -22,7 +21,7 @@ class WordService implements WordServiceInterface
         return $this->wordRepository->exists($word);
     }
 
-    public function score(string $word, mixed $playerId, Game $game): mixed
+    public function score(string $word, string $playerToken, Game $game): mixed
     {
         $wordExists = $this->check($word);
         $scoreWord = 0;
@@ -30,7 +29,7 @@ class WordService implements WordServiceInterface
 
         if ($wordExists) {
             /** @var Player $player */
-            $player = &$game->getPlayerByKey($playerId);
+            $player = &$game->getPlayerByKey($playerToken);
             if (!in_array($word, $player->getWords(), true)) {
                 $scoreWord = mb_strlen($word);
                 $player->addWord($word);
@@ -40,7 +39,7 @@ class WordService implements WordServiceInterface
                 $message = 'repeated_word';
             }
 
-            $game->setPlayerByKey($playerId, $player);
+            $game->setPlayerByKey($playerToken, $player);
 
             $this->gameRepository->save($game);
         }

@@ -8,9 +8,11 @@ use Ratchet\ConnectionInterface;
 
 interface SessionServiceInterface
 {
+    public function find(string $sessionId): ?Session;
+
     public function createSession(string $processId, int $countOfConnections): mixed;
 
-    public function joinToSession($player, string $sessionId): void;
+    public function joinToSession(string $playerToken, string $sessionId, ?ConnectionInterface $conn = null): void;
 
     public function setStart(string $sessionId, ?DateTime $time = null): Session;
 
@@ -19,4 +21,8 @@ interface SessionServiceInterface
     public function findByConnection($conn): mixed;
     /** @todo уйти от ConnectionInterface */
     public function removeConnection(string $sessionId, ConnectionInterface $conn): void;
+
+    public function findByPlayerToken(string $playerToken): ?string;
+
+    public function existByPlayerToken(string $playerToken): bool;
 }
