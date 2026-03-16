@@ -2,17 +2,19 @@
 
 namespace App\Domain\Game\Handler;
 
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Service\WordServiceInterface;
 use App\Domain\Game\Event\SendWord;
+use App\Domain\Game\Event\WordRejected;
+use App\Domain\Game\Event\WordResult;
 use App\Domain\Game\Repository\GameRepositoryInterface;
+use App\Domain\Game\Service\WordServiceInterface;
+use App\Domain\Session\Entity\Session;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Util\Exception\DomainLogicalException;
 use App\Util\Exception\NotFoundException;
 use DateTime;
-use Ratchet\ConnectionInterface;
-use App\Domain\Session\Entity\Session;
 
 class SendWordHandler extends AbstractEventHandler
 {
@@ -20,6 +22,7 @@ class SendWordHandler extends AbstractEventHandler
         private SessionServiceInterface $sessionService,
         private GameRepositoryInterface $gameRepository,
         private WordServiceInterface $wordService,
+        private WebSocketDispatcherInterface $dispatcher,
     ) {
     }
 
@@ -28,7 +31,7 @@ class SendWordHandler extends AbstractEventHandler
         return SendWord::class;
     }
 
-    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event): void
     {
         /** @var SendWord $event*/
         $word = $event->getWord();
@@ -47,34 +50,34 @@ class SendWordHandler extends AbstractEventHandler
         $game = $this->gameRepository->find($session->getProcessId());
 
         if (!$this->wordService->checkLetters($word, $game->getWord())) {
-            $conn->send(json_encode([
-                'type' => 'word_result',
-                'payload' => [
-                    'message' => 'The letter is missing from the target word',
-                ]
-            ]));
+            $this->dispatcher->dispatch(
+                new WordRejected(
+                    $sessionId,
+                    $playerToken,
+                    'The letter is missing from the target word'
+                )
+            );
 
             return;
         }
 
         $result = $this->wordService->score($word, $playerToken, $game);
 
-        if (!empty($result['score'])) {
-            $conn?->send(json_encode([
-                'type' => 'word_result',
-                'payload' => [
-                    'message' => $result['message'],
-                    'score' => $result['score'],
-                    'total' => $game->getPlayerByKey($playerToken)->getScore()
-                ]
-            ]));
-        } else {
-            $conn?->send(json_encode([
-                'type' => 'word_result',
-                'payload' => [
-                    'message' => $result['message'],
-                ]
-            ]));
-        }
+
+        $score = $result['score'] ?? null;
+        $message = $result['message'] ?? 'Word processed';
+        $totalScore = $score !== null
+            ? $game->getPlayerByKey($playerToken)?->getScore()
+            : null;
+
+        $this->dispatcher->dispatch(
+            new WordResult(
+                $sessionId,
+                $playerToken,
+                $message,
+                $score,
+                $totalScore
+            )
+        );
     }
 }

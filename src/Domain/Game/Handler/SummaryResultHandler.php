@@ -2,14 +2,14 @@
 
 namespace App\Domain\Game\Handler;
 
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Service\Scoring\SummaryService;
+use App\Domain\Game\Event\GameSummaryReady;
 use App\Domain\Game\Event\SummaryResult;
 use App\Domain\Game\Repository\GameRepositoryInterface;
+use App\Domain\Game\Service\Scoring\SummaryService;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Infrastructure\Connection\ConnectionStorage;
-use Ratchet\ConnectionInterface;
 
 class SummaryResultHandler extends AbstractEventHandler
 {
@@ -17,7 +17,7 @@ class SummaryResultHandler extends AbstractEventHandler
         private SessionRepositoryInterface $sessionRepository,
         private GameRepositoryInterface $gameRepository,
         private SummaryService $summaryService,
-        private ConnectionStorage $connectionStorage
+        private WebSocketDispatcherInterface $dispatcher
     ) {
     }
 
@@ -26,7 +26,7 @@ class SummaryResultHandler extends AbstractEventHandler
         return SummaryResult::class;
     }
 
-    public function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    public function process(EventInterface $event): void
     {
         /** @var SummaryResult $event */
         $sessionId = $event->getSessionId();
@@ -34,16 +34,6 @@ class SummaryResultHandler extends AbstractEventHandler
         $game = $this->gameRepository->find($session->getProcessId());
         $summary = $this->summaryService->summarize($game);
 
-        $connections = $this->connectionStorage->getConnections($sessionId);
-        foreach ($connections as $playerConn) {
-            $playerToken = $this->sessionRepository->getPlayerTokenByConnection($playerConn);
-            $playerConn->send(json_encode([
-                'type' => 'summarize_results',
-                'payload' => [
-                    'message' => 'Results are summarized',
-                    'results' => $playerToken && isset($summary[$playerToken]) && $summary[$playerToken]['is_winner']
-                ]
-            ]));
-        }
+        $this->dispatcher->dispatch(new GameSummaryReady($sessionId, $summary));
     }
 }

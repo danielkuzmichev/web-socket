@@ -6,12 +6,10 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Game\Event\CreateGame;
-use App\Domain\Game\Repository\WordRepositoryInterface;
+use App\Domain\Game\Event\CreatedGame;
 use App\Domain\Game\Service\GameServiceInterface;
-use App\Domain\Session\Event\CreateSession;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Util\Exception\DuplicateException;
-use Ratchet\ConnectionInterface;
 
 class CreateGameHandler extends AbstractEventHandler
 {
@@ -27,7 +25,7 @@ class CreateGameHandler extends AbstractEventHandler
         return CreateGame::class;
     }
 
-    protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    protected function process(EventInterface $event): void
     {
         /** @var CreateGame $event */
         if ($this->sessionService->existByPlayerToken($event->getPlayerToken())) {
@@ -37,6 +35,6 @@ class CreateGameHandler extends AbstractEventHandler
         $summaryType = $event->getSummaryType();
         $gameId = uniqid(more_entropy: true);
         $this->gameService->createGame($gameId, $summaryType);
-        $this->dispatcher->dispatch(new CreateSession($gameId, $event->getCountOfConnections(), $event->getPlayerToken()), $conn);
+        $this->dispatcher->dispatch(new CreatedGame($gameId, $event->getCountOfConnections(), $event->getPlayerToken()));
     }
 }

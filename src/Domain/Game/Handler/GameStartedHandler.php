@@ -2,21 +2,21 @@
 
 namespace App\Domain\Game\Handler;
 
+use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Game\Event\MatchStarted;
 use App\Domain\Game\Repository\GameRepositoryInterface;
 use App\Domain\Session\Event\SessionStarted;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Infrastructure\Connection\ConnectionStorageInterface;
 use App\Util\Exception\NotFoundException;
-use Ratchet\ConnectionInterface;
 
 class GameStartedHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
         private GameRepositoryInterface $gameRepository,
-        private ConnectionStorageInterface $connectionStorage,
+        private WebSocketDispatcherInterface $dispatcher,
     ) {
     }
 
@@ -25,7 +25,7 @@ class GameStartedHandler extends AbstractEventHandler
         return SessionStarted::class;
     }
 
-    protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    protected function process(EventInterface $event): void
     {
         /** @var SessionStarted $event */
         $sessionId = $event->getSessionId();
@@ -36,11 +36,6 @@ class GameStartedHandler extends AbstractEventHandler
             throw new NotFoundException('Game is not found');
         }
 
-        $this->connectionStorage->broadcastToSession($sessionId, [
-            'type' => 'match_started',
-            'payload' => [
-                'target_word' => $game->getWord(),
-            ]
-        ]);
+        $this->dispatcher->dispatch(new MatchStarted($sessionId, $game->getWord()));
     }
 }

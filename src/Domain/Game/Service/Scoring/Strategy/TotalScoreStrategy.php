@@ -47,7 +47,7 @@ class TotalScoreStrategy
             $prevScore = $score;
             $realPlace++;
         }
-        var_dump($result);
+
         return $result;
     }
 }

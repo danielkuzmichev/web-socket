@@ -10,7 +10,7 @@ use App\Domain\Session\Event\CreateSessionFail;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Infrastructure\Connection\ConnectionStorageInterface;
 use App\Util\Exception\DuplicateException;
-use Ratchet\ConnectionInterface;
+use React\Socket\ConnectionInterface;
 use Throwable;
 
 class CreateSessionHandler extends AbstractEventHandler
@@ -40,17 +40,17 @@ class CreateSessionHandler extends AbstractEventHandler
             $session = $this->sessionService->createSession($processId, $event->getCountOfConnections());
             $sessionId = $session->getId();
             $this->sessionService->joinToSession($playerToken, $sessionId);
-            $conn && $this->connectionStorage->add($sessionId, $conn);
         } catch (Throwable $e) {
             $this->dispatcher->dispatch(new CreateSessionFail($processId));
             throw $e;
         }
-        $conn?->send(json_encode([
+
+        $this->connectionStorage->sendToToken($playerToken, [
             'type' => 'session_created',
             'payload' => [
                 'message' => 'Game session successfully created',
                 'sessionId' => $sessionId,
             ]
-        ]));
+        ]);
     }
 }

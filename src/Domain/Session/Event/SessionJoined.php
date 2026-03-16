@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Domain\Game\Event;
+namespace App\Domain\Session\Event;
 
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
-#[Event('player_left')]
-class PlayerLeft implements EventInterface
+#[Event('session_joined')]
+class SessionJoined implements EventInterface
 {
     public function __construct(
         private string $sessionId,
-        private string $gameId,
+        private string $processId,
         private string $playerToken
     ) {
     }
@@ -20,9 +20,9 @@ class PlayerLeft implements EventInterface
         return $this->sessionId;
     }
 
-    public function getGameId()
+    public function getProcessId(): string
     {
-        return $this->gameId;
+        return $this->processId;
     }
 
     public function getPlayerToken(): string

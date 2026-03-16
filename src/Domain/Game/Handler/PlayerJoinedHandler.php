@@ -2,14 +2,12 @@
 
 namespace App\Domain\Game\Handler;
 
-use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Domain\Game\Entity\Player;
+use App\Domain\Game\Event\PlayerJoined;
 use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Session\Event\PlayerJoined;
 use App\Util\Exception\NotFoundException;
-use Ratchet\ConnectionInterface;
 
 class PlayerJoinedHandler extends AbstractEventHandler
 {
@@ -23,7 +21,7 @@ class PlayerJoinedHandler extends AbstractEventHandler
         return PlayerJoined::class;
     }
 
-    protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    protected function process(EventInterface $event): void
     {
         /** @var PlayerJoined $event */
         $gameId = $event->getGameId();

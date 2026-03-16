@@ -3,7 +3,7 @@
 namespace App;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
-use App\Domain\Game\Event\PlayerLeft;
+use App\Domain\Session\Event\SessionDisconnected;
 use Ratchet\ConnectionInterface;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Infrastructure\Connection\ConnectionStorage;
@@ -25,13 +25,16 @@ class GameServer implements MessageComponentInterface
     {
         $this->logger->info('Новое подключение', ['id' => $conn->resourceId]);
         echo "New connection: {$conn->resourceId}\n";
+        $this->connectionStorage->addConnection($conn);
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $data = json_decode($msg, true);
-        if ($data) {
-            $this->dispatcher->dispatchFromArray($data, $from);
+        if ($data && isset($data['payload']['playerToken'])) {
+            $playerToken = $data['payload']['playerToken'];
+            $this->connectionStorage->bindToken($playerToken, $from);
+            $this->dispatcher->dispatchFromArray($data);
         } else {
             $from->send(json_encode([
                 'type' => 'error',
@@ -50,25 +53,28 @@ class GameServer implements MessageComponentInterface
         $session = $this->sessionService->findByConnection($conn);
         $sessionId = $session?->getId();
         if ($sessionId !== null) {
+            $playerToken = $this->connectionStorage->getTokenByConnection($conn);
             $this->sessionService->removeConnection($sessionId, $conn);
 
             $sessionConns = $this->connectionStorage->getConnections($sessionId);
+            
+            if ($playerToken !== null) {
+                $event = new SessionDisconnected($sessionId, $session->getProcessId(), $playerToken);
 
-            $event = new PlayerLeft($sessionId, $session->getProcessId(), $conn->resourceId);
+                $this->dispatcher->dispatch($event);
 
-            // Уведомляем других игроков, что кто-то вышел
-            $this->dispatcher->dispatch($event);
-
-            if (!empty($sessionConns)) {
-                foreach ($sessionConns as $playerConn) {
-                    $playerConn->send(json_encode([
-                        'type' => 'player_left',
-                        'payload' => [
-                            'message' => 'Other player left the session.',
-                            'sessionId' => $sessionId,
-                            'departedPlayer' => $conn->resourceId,
-                        ]
-                    ]));
+                // Уведомляем других игроков, что кто-то вышел
+                if (!empty($sessionConns)) {
+                    foreach ($sessionConns as $playerConn) {
+                        $playerConn->send(json_encode([
+                            'type' => 'player_left',
+                            'payload' => [
+                                'message' => 'Other player left the session.',
+                                'sessionId' => $sessionId,
+                                'departedPlayer' => $playerToken,
+                            ]
+                        ]));
+                    }
                 }
             }
         }

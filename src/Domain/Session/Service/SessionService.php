@@ -3,7 +3,6 @@
 namespace App\Domain\Session\Service;
 
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Domain\Game\Repository\WordRepositoryInterface;
 use App\Domain\Session\Entity\Session;
 use App\Infrastructure\Connection\ConnectionStorage;
 use App\Util\Exception\DomainLogicalException;
@@ -57,11 +56,12 @@ class SessionService implements SessionServiceInterface
             throw new DomainLogicalException('You already joined or created a session.');
         }
 
-        // Теперь ДЕЙСТВИТЕЛЬНО добавляем соединение в сессию
-        $this->sessionRepository->add($sessionId, [$playerToken], $conn);
+        $this->sessionRepository->add($sessionId, [$playerToken]);
 
-        // И в ConnectionStorage
-        $conn && $this->connectionStorage->add($sessionId, $conn);
+        $conn = $this->connectionStorage->getByToken($playerToken);
+        if ($conn !== null) {
+            $this->connectionStorage->add($sessionId, $conn);
+        }
     }
 
     public function setStart(string $sessionId, ?DateTime $time = null): Session

@@ -5,11 +5,10 @@ namespace App\Domain\Game\Handler;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
+use App\Domain\Game\Event\GameEmpty;
 use App\Domain\Game\Event\PlayerLeft;
 use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Session\Event\FinishSession;
 use App\Util\Exception\NotFoundException;
-use Ratchet\ConnectionInterface;
 
 class PlayerLeftHandler extends AbstractEventHandler
 {
@@ -24,23 +23,23 @@ class PlayerLeftHandler extends AbstractEventHandler
         return PlayerLeft::class;
     }
 
-    protected function process(EventInterface $event, ?ConnectionInterface $conn = null): void
+    protected function process(EventInterface $event): void
     {
         /** @var PlayerLeft $event */
         $sessionId = $event->getSessionId();
         $gameId = $event->getGameId();
-        $playerId = $event->getPlayerId();
+        $playerToken = $event->getPlayerToken();
         $game = $this->gameRepository->find($gameId);
 
         if ($game === null) {
             throw new NotFoundException('Game is not found');
         }
 
-        $game->removePlayerById($playerId);
+        $game->removePlayerById($playerToken);
         $this->gameRepository->save($game);
 
         if (count($game->getPlayers()) <= 1) {
-            $this->dispatcher->dispatch(new FinishSession($sessionId));
+            $this->dispatcher->dispatch(new GameEmpty($sessionId, $gameId));
         }
     }
 }

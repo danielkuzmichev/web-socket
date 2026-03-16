@@ -5,13 +5,12 @@ namespace App\Domain\Game\Event;
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
-#[Event('player_left')]
-class PlayerLeft implements EventInterface
+#[Event('game_summary_ready')]
+class GameSummaryReady implements EventInterface
 {
     public function __construct(
         private string $sessionId,
-        private string $gameId,
-        private string $playerToken
+        private array $results
     ) {
     }
 
@@ -20,13 +19,8 @@ class PlayerLeft implements EventInterface
         return $this->sessionId;
     }
 
-    public function getGameId()
+    public function getResults(): array
     {
-        return $this->gameId;
-    }
-
-    public function getPlayerToken(): string
-    {
-        return $this->playerToken;
+        return $this->results;
     }
 }

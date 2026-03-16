@@ -4,7 +4,6 @@ namespace App\Core\Dispatcher;
 
 use App\Core\Event\EventInterface;
 use App\Core\Handler\EventHandlerInterface;
-use Ratchet\ConnectionInterface;
 
 class EventDispatcher implements WebSocketDispatcherInterface
 {
@@ -56,7 +55,7 @@ class EventDispatcher implements WebSocketDispatcherInterface
         }
     }
 
-    public function dispatchFromArray(array $message, ?ConnectionInterface $conn = null): void
+    public function dispatchFromArray(array $message): void
     {
         if (!isset($message['type'])) {
             throw new \InvalidArgumentException("Missing 'type' in message");
@@ -66,7 +65,7 @@ class EventDispatcher implements WebSocketDispatcherInterface
         $payload = $message['payload'] ?? [];
 
         $event = $this->createEvent($type, $payload);
-        $this->dispatch($event, $conn);
+        $this->dispatch($event);
     }
 
     protected function createEvent(string $type, array $payload): EventInterface
@@ -80,7 +79,7 @@ class EventDispatcher implements WebSocketDispatcherInterface
         return new $eventClass(...$payload);
     }
 
-    public function dispatch(EventInterface $event, ?ConnectionInterface $conn = null): void
+    public function dispatch(EventInterface $event): void
     {
         $eventClass = get_class($event);
 
@@ -89,7 +88,7 @@ class EventDispatcher implements WebSocketDispatcherInterface
         }
 
         foreach ($this->handlers[$eventClass] as $handler) {
-            $handler->handle($event, $conn);
+            $handler->handle($event);
         }
     }
 }
