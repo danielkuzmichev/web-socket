@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Domain\Game\Handler;
+namespace App\Application\Handler;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\CreateGame;
-use App\Domain\Game\Event\CreatedGame;
+use App\Application\Event\CreateGame;
+use App\Application\Event\CreatedGame;
 use App\Domain\Game\Service\GameServiceInterface;
 use App\Domain\Session\Service\SessionServiceInterface;
 use App\Util\Exception\DuplicateException;
@@ -31,7 +31,7 @@ class CreateGameHandler extends AbstractEventHandler
         if ($this->sessionService->existByPlayerToken($event->getPlayerToken())) {
             throw new DuplicateException('You already created or joined a session.');
         }
-        /** @var CreateGame $event */
+
         $summaryType = $event->getSummaryType();
         $gameId = uniqid(more_entropy: true);
         $this->gameService->createGame($gameId, $summaryType);

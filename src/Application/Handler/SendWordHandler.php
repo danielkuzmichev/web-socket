@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Domain\Game\Handler;
+namespace App\Application\Handler;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\SendWord;
-use App\Domain\Game\Event\WordRejected;
-use App\Domain\Game\Event\WordResult;
+use App\Application\Event\SendWord;
+use App\Application\Event\WordRejected;
+use App\Application\Event\WordResult;
 use App\Domain\Game\Repository\GameRepositoryInterface;
 use App\Domain\Game\Service\WordServiceInterface;
 use App\Domain\Session\Entity\Session;
@@ -62,7 +62,6 @@ class SendWordHandler extends AbstractEventHandler
         }
 
         $result = $this->wordService->score($word, $playerToken, $game);
-
 
         $score = $result['score'] ?? null;
         $message = $result['message'] ?? 'Word processed';

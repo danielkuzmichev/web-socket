@@ -19,7 +19,10 @@ $loader = new YamlFileLoader($containerBuilder, new FileLocator(__DIR__));
 $loader->load('services.yml');
 
 // event_map
-$eventMap = build_event_map(__DIR__ . '/../src/Domain/*/Event');
+$eventMap = array_merge(
+    build_event_map(__DIR__ . '/../src/Domain/*/Event'),
+    build_event_map(__DIR__ . '/../src/Application/Event')
+);
 $containerBuilder->setParameter('event_map', $eventMap);
 
 // Logger

@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Domain\Game\Event;
+namespace App\Application\Event;
 
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
-#[Event('game_created')]
-class CreatedGame implements EventInterface
+#[Event('create_game')]
+class CreateGame implements EventInterface
 {
     public function __construct(
-        private string $gameId,
-        private int $countOfConnections,
-        private string $playerToken
+        private string $summaryType,
+        private string $playerToken,
+        private int $countOfConnections = 2,
     ) {
     }
 
-    public function getGameId(): string
+    public function getSummaryType()
     {
-        return $this->gameId;
+        return $this->summaryType;
     }
 
     public function getCountOfConnections(): int

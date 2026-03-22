@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Domain\Game\Event;
+namespace App\Application\Event;
 
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;
 
-#[Event('word_rejected')]
-class WordRejected implements EventInterface
+#[Event('word_result')]
+class WordResult implements EventInterface
 {
     public function __construct(
         private string $sessionId,
         private string $playerToken,
-        private string $message
+        private string $message,
+        private ?int $score,
+        private ?int $totalScore
     ) {
     }
 
@@ -28,5 +30,15 @@ class WordRejected implements EventInterface
     public function getMessage(): string
     {
         return $this->message;
+    }
+
+    public function getScore(): ?int
+    {
+        return $this->score;
+    }
+
+    public function getTotalScore(): ?int
+    {
+        return $this->totalScore;
     }
 }

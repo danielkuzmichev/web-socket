@@ -46,8 +46,18 @@ class RedisSessionRepository implements SessionRepositoryInterface
     {
         $session = $this->find($sessionId);
         if ($session) {
-            foreach ($session->getConnections() as $conn) {
-                $this->redis->del("connection_to_session:{$conn}");
+            $playerTokens = array_values($session->getConnections());
+
+            foreach ($playerTokens as $playerToken) {
+                $this->redis->del("connection_to_session:{$playerToken}");
+            }
+
+            $resourceToTokenKeys = $this->redis->keys('connection_resource_to_token:*') ?: [];
+            foreach ($resourceToTokenKeys as $resourceKey) {
+                $mappedToken = $this->redis->get($resourceKey);
+                if ($mappedToken !== false && in_array($mappedToken, $playerTokens, true)) {
+                    $this->redis->del($resourceKey);
+                }
             }
         }
         $this->redis->del("session:$sessionId");

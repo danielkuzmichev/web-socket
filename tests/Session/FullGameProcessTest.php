@@ -46,10 +46,21 @@ class FullGameProcessTest extends BaseWebSocketTestCase
         sleep(6);
         $messages = $client2->receive();
         $this->assertGreaterThanOrEqual(2, count($messages));
-        $gameWordMsg = $messages[3];
+        $gameWordMsg = null;
+        foreach ($messages as $message) {
+            if (
+                ($message['type'] ?? null) === 'match_started'
+                && isset($message['payload']['target_word'])
+            ) {
+                $gameWordMsg = $message;
+                break;
+            }
+        }
 
+        $this->assertNotNull($gameWordMsg, 'Message match_started must be present');
         $this->assertArrayHasKey('payload', $gameWordMsg);
         $this->assertArrayHasKey('target_word', $gameWordMsg['payload']);
+
         $originalWord = $gameWordMsg['payload']['target_word'];
 
         // 4. Подменяем слово в объекте игры через сеттер

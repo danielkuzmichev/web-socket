@@ -4,7 +4,7 @@ namespace App\Application\Handler;
 
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\MatchStarted;
+use App\Application\Event\MatchStarted;
 use App\Infrastructure\Connection\ConnectionStorageInterface;
 
 class NotifyPlayersOnMatchStartedHandler extends AbstractEventHandler

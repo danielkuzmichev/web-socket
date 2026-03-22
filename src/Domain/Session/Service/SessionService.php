@@ -47,7 +47,6 @@ class SessionService implements SessionServiceInterface
         if (!$session) {
             throw new NotFoundException('Session not found.');
         }
-
         if (count($session->getConnections()) === $session->getCountOfConnections()) {
             throw new DomainLogicalException('Session is full.');
         }
@@ -56,9 +55,12 @@ class SessionService implements SessionServiceInterface
             throw new DomainLogicalException('You already joined or created a session.');
         }
 
-        $this->sessionRepository->add($sessionId, [$playerToken]);
+        if ($conn === null) {
+            $conn = $this->connectionStorage->getByToken($playerToken);
+        }
 
-        $conn = $this->connectionStorage->getByToken($playerToken);
+        $this->sessionRepository->add($sessionId, [$playerToken], $conn);
+
         if ($conn !== null) {
             $this->connectionStorage->add($sessionId, $conn);
         }

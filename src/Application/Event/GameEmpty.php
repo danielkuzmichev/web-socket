@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Game\Event;
+namespace App\Application\Event;
 
 use App\Core\Attribute\Event;
 use App\Core\Event\EventInterface;

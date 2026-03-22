@@ -5,7 +5,7 @@ namespace App\Application\Handler;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\PlayerLeft;
+use App\Application\Event\PlayerLeft;
 use App\Domain\Session\Event\SessionDisconnected;
 
 class OnSessionDisconnectedHandler extends AbstractEventHandler

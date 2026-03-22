@@ -7,7 +7,7 @@ use App\Domain\Session\Service\TimerService;
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\SummaryResult;
+use App\Application\Event\SummaryResult;
 use App\Domain\Session\Event\SessionStarted;
 use App\Domain\Session\Event\StartSession;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
@@ -58,6 +58,12 @@ class StartSessionHandler extends AbstractEventHandler
 
     private function startMatch(string $sessionId): void
     {
+        $session = $this->sessionService->find($sessionId);
+        if ($session === null) {
+            $this->timerService->cancelAll($sessionId);
+            return;
+        }
+
         $matchDuration = $this->gameStartDelay; // Длительность матча
         // Уведомляем всех, что матч начался
         $this->connectionStorage->broadcastToSession($sessionId, [
@@ -78,6 +84,12 @@ class StartSessionHandler extends AbstractEventHandler
 
     private function endMatch(string $sessionId): void
     {
+        $session = $this->sessionService->find($sessionId);
+        if ($session === null) {
+            $this->timerService->cancelAll($sessionId);
+            return;
+        }
+
         // Уведомляем всех, что матч завершён
         $this->connectionStorage->broadcastToSession($sessionId, [
             'type' => 'match_ended',

@@ -1,41 +1,39 @@
 <?php
 
-namespace App\Domain\Game\Handler;
+namespace App\Application\Handler;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Event\MatchStarted;
+use App\Application\Event\GameSummaryReady;
+use App\Application\Event\SummaryResult;
 use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Session\Event\SessionStarted;
+use App\Domain\Game\Service\Scoring\SummaryService;
 use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Util\Exception\NotFoundException;
 
-class GameStartedHandler extends AbstractEventHandler
+class SummaryResultHandler extends AbstractEventHandler
 {
     public function __construct(
         private SessionRepositoryInterface $sessionRepository,
         private GameRepositoryInterface $gameRepository,
-        private WebSocketDispatcherInterface $dispatcher,
+        private SummaryService $summaryService,
+        private WebSocketDispatcherInterface $dispatcher
     ) {
     }
 
     public function getEventClass(): string
     {
-        return SessionStarted::class;
+        return SummaryResult::class;
     }
 
-    protected function process(EventInterface $event): void
+    public function process(EventInterface $event): void
     {
-        /** @var SessionStarted $event */
+        /** @var SummaryResult $event */
         $sessionId = $event->getSessionId();
         $session = $this->sessionRepository->find($sessionId);
         $game = $this->gameRepository->find($session->getProcessId());
+        $summary = $this->summaryService->summarize($game);
 
-        if ($game === null) {
-            throw new NotFoundException('Game is not found');
-        }
-
-        $this->dispatcher->dispatch(new MatchStarted($sessionId, $game->getWord()));
+        $this->dispatcher->dispatch(new GameSummaryReady($sessionId, $summary));
     }
 }
