@@ -8,12 +8,12 @@ use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\SendWord;
 use App\Application\Event\WordRejected;
 use App\Application\Event\WordResult;
-use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Game\Service\WordServiceInterface;
-use App\Domain\Session\Entity\Session;
-use App\Domain\Session\Service\SessionServiceInterface;
-use App\Util\Exception\DomainLogicalException;
-use App\Util\Exception\NotFoundException;
+use App\Game\Repository\GameRepositoryInterface;
+use App\Game\Service\WordServiceInterface;
+use App\Session\Entity\Session;
+use App\Session\Service\SessionServiceInterface;
+use App\Core\Exception\DomainLogicalException;
+use App\Core\Exception\NotFoundException;
 use DateTime;
 
 class SendWordHandler extends AbstractEventHandler

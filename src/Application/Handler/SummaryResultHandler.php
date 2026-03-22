@@ -7,9 +7,9 @@ use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\GameSummaryReady;
 use App\Application\Event\SummaryResult;
-use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Game\Service\Scoring\SummaryService;
-use App\Domain\Session\Repository\SessionRepositoryInterface;
+use App\Game\Repository\GameRepositoryInterface;
+use App\Game\Service\Scoring\SummaryService;
+use App\Session\Repository\SessionRepositoryInterface;
 
 class SummaryResultHandler extends AbstractEventHandler
 {

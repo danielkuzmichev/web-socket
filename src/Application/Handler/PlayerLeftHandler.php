@@ -7,8 +7,8 @@ use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\GameEmpty;
 use App\Application\Event\PlayerLeft;
-use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Util\Exception\NotFoundException;
+use App\Game\Repository\GameRepositoryInterface;
+use App\Core\Exception\NotFoundException;
 
 class PlayerLeftHandler extends AbstractEventHandler
 {

@@ -5,7 +5,7 @@ namespace App\Application\Handler;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\WordResult;
-use App\Infrastructure\Connection\ConnectionStorageInterface;
+use App\Connection\ConnectionStorageInterface;
 
 class NotifyPlayerOnWordResultHandler extends AbstractEventHandler
 {

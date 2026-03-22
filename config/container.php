@@ -20,7 +20,7 @@ $loader->load('services.yml');
 
 // event_map
 $eventMap = array_merge(
-    build_event_map(__DIR__ . '/../src/Domain/*/Event'),
+    build_event_map(__DIR__ . '/../src/SessionEventPlatform/Event'),
     build_event_map(__DIR__ . '/../src/Application/Event')
 );
 $containerBuilder->setParameter('event_map', $eventMap);

@@ -6,7 +6,7 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\PlayerLeft;
-use App\Domain\Session\Event\SessionDisconnected;
+use App\SessionEventPlatform\Event\SessionDisconnected;
 
 class OnSessionDisconnectedHandler extends AbstractEventHandler
 {

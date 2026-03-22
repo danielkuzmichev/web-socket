@@ -4,10 +4,10 @@ namespace App\Application\Handler;
 
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
-use App\Domain\Game\Entity\Player;
+use App\Game\Entity\Player;
 use App\Application\Event\PlayerJoined;
-use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Util\Exception\NotFoundException;
+use App\Game\Repository\GameRepositoryInterface;
+use App\Core\Exception\NotFoundException;
 
 class PlayerJoinedHandler extends AbstractEventHandler
 {

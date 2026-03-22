@@ -3,11 +3,11 @@
 namespace App;
 
 use App\Core\Dispatcher\WebSocketDispatcherInterface;
-use App\Domain\Session\Event\SessionDisconnected;
+use App\SessionEventPlatform\Event\SessionDisconnected;
 use Ratchet\ConnectionInterface;
-use App\Domain\Session\Service\SessionServiceInterface;
-use App\Infrastructure\Connection\ConnectionStorage;
-use App\Util\Exception\ReturnableException;
+use App\Session\Service\SessionServiceInterface;
+use App\Connection\ConnectionStorage;
+use App\Core\Exception\ReturnableException;
 use Psr\Log\LoggerInterface;
 use Ratchet\WebSocket\MessageComponentInterface;
 

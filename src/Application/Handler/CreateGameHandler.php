@@ -7,9 +7,9 @@ use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\CreateGame;
 use App\Application\Event\CreatedGame;
-use App\Domain\Game\Service\GameServiceInterface;
-use App\Domain\Session\Service\SessionServiceInterface;
-use App\Util\Exception\DuplicateException;
+use App\Game\Service\GameServiceInterface;
+use App\Session\Service\SessionServiceInterface;
+use App\Core\Exception\DuplicateException;
 
 class CreateGameHandler extends AbstractEventHandler
 {

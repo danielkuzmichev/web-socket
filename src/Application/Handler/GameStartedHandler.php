@@ -6,10 +6,10 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\MatchStarted;
-use App\Domain\Game\Repository\GameRepositoryInterface;
-use App\Domain\Session\Event\SessionStarted;
-use App\Domain\Session\Repository\SessionRepositoryInterface;
-use App\Util\Exception\NotFoundException;
+use App\Game\Repository\GameRepositoryInterface;
+use App\SessionEventPlatform\Event\SessionStarted;
+use App\Session\Repository\SessionRepositoryInterface;
+use App\Core\Exception\NotFoundException;
 
 class GameStartedHandler extends AbstractEventHandler
 {

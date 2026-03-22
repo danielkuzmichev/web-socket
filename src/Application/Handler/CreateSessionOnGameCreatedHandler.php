@@ -6,7 +6,7 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\CreatedGame;
-use App\Domain\Session\Event\CreateSession;
+use App\SessionEventPlatform\Event\CreateSession;
 
 class CreateSessionOnGameCreatedHandler extends AbstractEventHandler
 {

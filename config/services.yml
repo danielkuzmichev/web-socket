@@ -12,13 +12,14 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Tests/'
-            - '../src/Domain/*/Entity'
-            - '../src/Domain/*/Event'
+            - '../src/Game/Entity'
+            - '../src/Session/Entity'
+            - '../src/SessionEventPlatform/Event'
             - '../src/Application/Event'
             - '../src/Core/Attribute/'
 
     redis.default:
-        class: App\Infrastructure\Redis\RedisClient
+        class: App\Redis\RedisClient
         calls:
             - method: connect
               arguments:
@@ -27,7 +28,7 @@ services:
                 - 0
 
     redis.word_repository:
-        class: App\Infrastructure\Redis\RedisClient
+        class: App\Redis\RedisClient
         calls:
             - method: connect
               arguments:
@@ -35,25 +36,25 @@ services:
                 - 6379
                 - 1
 
-    App\Infrastructure\Repository\Redis\Game\RedisGameRepository:
+    App\Application\Repository\Redis\Game\RedisGameRepository:
         arguments:
             $redis: '@redis.default'
 
-    App\Infrastructure\Repository\Redis\Session\RedisSessionRepository:
+    App\Application\Repository\Redis\Session\RedisSessionRepository:
         arguments:
             $redis: '@redis.default'
 
-    App\Infrastructure\Repository\Redis\Game\RedisWordRepository:
+    App\Application\Repository\Redis\Game\RedisWordRepository:
         arguments:
             $redis: '@redis.word_repository'
             $dbIndex: 1
 
-    App\Domain\Session\Service\TimerService:
+    App\Session\Service\TimerService:
         tags:
             - { name: 'app.service' }
 
-    App\Domain\:
-        resource: '../src/Domain/*/Handler/*'
+    App\SessionEventPlatform\Handler\:
+        resource: '../src/SessionEventPlatform/Handler/*'
         tags: ['app.message_handler']
 
     App\Application\Handler\:
@@ -71,18 +72,18 @@ services:
     
     App\Core\Dispatcher\WebSocketDispatcherInterface: '@App\Core\Dispatcher\EventDispatcher'
 
-    App\Infrastructure\Connection\ConnectionStorageInterface: '@App\Infrastructure\Connection\ConnectionStorage'
+    App\Connection\ConnectionStorageInterface: '@App\Connection\ConnectionStorage'
 
-    App\Domain\Session\Repository\SessionRepositoryInterface: '@App\Infrastructure\Repository\Redis\Session\RedisSessionRepository'
+    App\Session\Repository\SessionRepositoryInterface: '@App\Application\Repository\Redis\Session\RedisSessionRepository'
 
-    App\Domain\Repository\Game\RedisWordRepositoryInterface: '@App\Infrastructure\Repository\Redis\Game\RedisWordRepository'
+    App\Game\Repository\WordRepositoryInterface: '@App\Application\Repository\Redis\Game\RedisWordRepository'
 
-    App\Domain\Session\Service\SessionServiceInterface: '@App\Domain\Session\Service\SessionService'
+    App\Session\Service\SessionServiceInterface: '@App\Session\Service\SessionService'
 
     App\GameServer:
         arguments:
             $dispatcher: '@App\Core\Dispatcher\WebSocketDispatcherInterface'
-            $connectionStorage: '@App\Infrastructure\Connection\ConnectionStorage'
+            $connectionStorage: '@App\Connection\ConnectionStorage'
             $logger: '@websocket.logger'
 
-    App\Domain\Game\Repository\GameRepositoryInterface: '@App\Infrastructure\Repository\Redis\Game\RedisGameRepository'
+    App\Game\Repository\GameRepositoryInterface: '@App\Application\Repository\Redis\Game\RedisGameRepository'

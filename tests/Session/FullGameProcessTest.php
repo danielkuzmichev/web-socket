@@ -65,13 +65,13 @@ class FullGameProcessTest extends BaseWebSocketTestCase
 
         // 4. Подменяем слово в объекте игры через сеттер
 
-        $sessionRepository = $this->getFromContainer(\App\Domain\Session\Repository\SessionRepositoryInterface::class);
+        $sessionRepository = $this->getFromContainer(\App\Session\Repository\SessionRepositoryInterface::class);
 
         $session = $sessionRepository->find($sessionId);
 
         $gameId = $session->getProcessId();
 
-        $gameRepository = $this->getFromContainer(\App\Domain\Game\Repository\GameRepositoryInterface::class);
+        $gameRepository = $this->getFromContainer(\App\Game\Repository\GameRepositoryInterface::class);
 
         $game = $gameRepository->find($gameId);
         $reflection = new \ReflectionClass($game);

@@ -6,7 +6,7 @@ use App\Core\Dispatcher\WebSocketDispatcherInterface;
 use App\Core\Event\EventInterface;
 use App\Core\Handler\AbstractEventHandler;
 use App\Application\Event\GameEmpty;
-use App\Domain\Session\Event\FinishSession;
+use App\SessionEventPlatform\Event\FinishSession;
 
 class OnGameEmptyHandler extends AbstractEventHandler
 {
